@@ -1,0 +1,17 @@
+/home/anders/walls/abstract
+/home/anders/walls/aerial
+/home/anders/walls/apocalypse
+/home/anders/walls/architecture
+/home/anders/walls/calm
+/home/anders/walls/centered
+/home/anders/walls/chillop
+/home/anders/walls/girl
+/home/anders/walls/gruvbox
+/home/anders/walls/industrial
+/home/anders/walls/interior
+/home/anders/walls/minimal
+/home/anders/walls/monochrome
+/home/anders/walls/pixel
+/home/anders/walls/poly
+/home/anders/walls/stalenhag
+/home/anders/walls/unsorted

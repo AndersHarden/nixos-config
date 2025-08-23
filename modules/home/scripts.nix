@@ -1,9 +1,7 @@
-# Plats: modules/home/scripts.nix
 { pkgs, ... }:
 {
-  home.file.".config/Scripts/wallpaper-changer.sh" = {
-    source = ./scripts/wallpaper-changer.sh;
-    executable = true; # Gör skriptet körbart!
+  home.file.".local/bin/set-random-wallpaper" = { # Vi ger det ett tydligt namn
+    source = ./scripts/set-wallpaper.sh;
+    executable = true;
   };
-  # Gör likadant för battery-notify och dina rofi-skript
 }

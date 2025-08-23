@@ -99,7 +99,7 @@
         exec-once = ${pkgs.waybar}/bin/waybar
         exec-once = ${pkgs.hyprpaper}/bin/hyprpaper
         exec-once = ${pkgs.hypridle}/bin/hypridle
-        exec-once = /home/anders/.config/Scripts/wallpaper-changer.sh --random 900
+        exec-once = .local/bin/set-random-wallpaper
         exec-once = ${pkgs.trayscale}/bin/trayscale --hide-window
         exec-once = /home/anders/.config/Scripts/battery-notify
         exec-once = ${pkgs.hyprland}/bin/hyprctl setcursor Adwaita 24

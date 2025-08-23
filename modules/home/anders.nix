@@ -4,6 +4,7 @@
   # Importera alla dina program-specifika konfigurationer här
   imports = [
     ./kitty.nix
+    ./config-files.nix
   ];
 
   home.username = "anders";
