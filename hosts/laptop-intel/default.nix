@@ -49,7 +49,7 @@
       "quiet" "splash" "boot.shell_on_fail" "udev.log_priority=3"
       "rd.systemd.show_status=auto" "plymouth.use-initrd=true"
     ];
-
+  };
 
   # ===============================================================
   # == 2. TILLDELA EN HOME MANAGER-KONFIGURATION TILL ANVÄNDAREN  ==
@@ -71,4 +71,5 @@
   ];
 
   system.stateVersion = "25.05";
+
 }
