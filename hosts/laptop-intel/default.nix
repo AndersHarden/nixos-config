@@ -12,7 +12,6 @@
 
     # Profiler (Här kommer grafiken in!)
     ../../modules/profiles/desktop.nix
-    ../../modules/profiles/server.nix 
 
     # ===============================================================
     # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
@@ -29,16 +28,28 @@
   console.keyMap = "sv-latin1";
 
   # LUKS och Bootloader
-  boot = {
-    initrd.luks.devices."root" = {
-      device = "/dev/nvme0-n1p5"; # Dubbelkolla att detta är rätt för denna dator
-      preLVM = true;
+boot = {
+    plymouth = {
+      enable = true;
+      theme = "loader_2";
+      themePackages = with pkgs; [
+        (adi1090x-plymouth-themes.override { selected_themes = [ "loader_2" ]; })
+      ];
     };
-    loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
-    };
-  };
+
+    # VIKTIGT: Verifiera att denna LUKS-partition är korrekt för DENNA dator!
+    # Kör `ls -l /dev/disk/by-uuid/` för att hitta rätt UUID.
+    initrd.systemd.enable = true;
+    initrd.luks.devices."root".device = "/dev/nvme0n1p5";
+    initrd.luks.devices."root".preLVM = true;
+
+    consoleLogLevel = 3;
+    initrd.verbose = false;
+    kernelParams = [
+      "quiet" "splash" "boot.shell_on_fail" "udev.log_priority=3"
+      "rd.systemd.show_status=auto" "plymouth.use-initrd=true"
+    ];
+
 
   # ===============================================================
   # == 2. TILLDELA EN HOME MANAGER-KONFIGURATION TILL ANVÄNDAREN  ==

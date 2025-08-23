@@ -8,7 +8,7 @@
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
-  ];
+
 
     # ===============================================================
     # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
