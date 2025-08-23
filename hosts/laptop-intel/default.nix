@@ -28,7 +28,7 @@
   console.keyMap = "sv-latin1";
 
   # LUKS och Bootloader
-boot = {
+  boot = {
     plymouth = {
       enable = true;
       theme = "loader_2";
