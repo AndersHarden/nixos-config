@@ -38,5 +38,6 @@
     htop
     fastfetch
     btop
+    nautilus
   ];
 }

@@ -1,121 +1,210 @@
 # Plats: modules/desktop/hyprland.nix
-{ config, pkgs, ... }:
+{ config, pkgs, inputs, ... }:
 
-# Hela 'let'-blocket är borttaget.
-# Denna modul är nu "ren" och förlitar sig på att värd-filen
-# tillhandahåller 'pkgs.unstable' via en overlay.
 {
-  # Aktivera Hyprland och relaterade tjänster
   programs.hyprland.enable = true;
-  services.hypridle.enable = true;
-  programs.hyprlock.enable = true;
+  environment.systemPackages = with pkgs; [ /* ... alla dina paket ... */ ];
 
-  # Paket som ska installeras för Hyprland-miljön
-  environment.systemPackages = with pkgs; [
-    # Terminal och grundläggande verktyg
-    kitty
-    imagemagick
-    rofi-wayland
-    dunst
-    jq
+  home-manager.users.anders = {
+    wayland.windowManager.hyprland = {
+      enable = true;
 
-    # Ljud, media och skärm-kontroller
-    pavucontrol
-    playerctl
-    brightnessctl
+      settings = {
+        # 'decoration' är nu borttagen härifrån
 
-    # Hyprland-specifika verktyg
-    hyprpaper
-    hyprpicker
-    hyprcursor
+        general = {
+          gaps_in = 5;
+          gaps_out = 15;
+          border_size = 2;
+          "col.active_border" = "rgba(faffb4aa)";
+          "col.inactive_border" = "rgba(595959aa)";
+          resize_on_border = false;
+          allow_tearing = false;
+          layout = "dwindle";
+        };
 
-    # Teman och utseende
-    pywal16
-    nwg-look
-    graphite-gtk-theme
-    kora-icon-theme
+        dwindle = {
+          pseudotile = true;
+          preserve_split = true;
+        };
 
-    # Bluetooth
-    blueman
+        master.new_status = "master";
 
-    # Waybar och dess beroenden
-    unstable.waybar # Använder 'unstable' direkt från pkgs-overlay
-    eww
-    gtk3
-    glib
-    gdk-pixbuf
-    pango
-    cairo
-    librsvg
-    gtk-layer-shell
-    dart-sass
+        misc = {
+          force_default_wallpaper = -1;
+          disable_hyprland_logo = true;
+        };
 
-    # =================================================================
-    # == INNEHÅLL FRÅN waybar-network-vnstat.nix INTEGRERAT HÄR      ==
-    # =================================================================
-    (writeShellScriptBin "waybar-network-vnstat" ''
-      #!/usr/bin/env bash
-      set -euo pipefail
+        input = {
+          kb_layout = "se";
+          follow_mouse = 1;
+          sensitivity = 0;
+          touchpad.natural_scroll = true;
+          numlock_by_default = true;
+        };
 
-      while true; do
-        # ── Interface ─────────────────────
-        IFACE=$(ip -o -4 addr show up | awk '!/ lo / {print $2; exit}')
-        [ -z "$IFACE" ] && IFACE="wlan0"
+        gestures.workspace_swipe = true;
 
-        # ── IP och Wi-Fi info ─────────────
-        IPADDR=$(ip -4 addr show dev "$IFACE" 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1 || echo "N/A")
+        device = {
+          name = "epic-mouse-v1";
+          sensitivity = -0.5;
+        };
 
-        IS_WIFI=0
-        ESSID=""
-        if [ -r /proc/net/wireless ] && grep -qE "^[[:space:]]*$IFACE:" /proc/net/wireless; then
-          IS_WIFI=1
-          ESSID=$(iwgetid "$IFACE" -r 2>/dev/null || echo "")
-        fi
-        [ -z "$ESSID" ] && ESSID="$IFACE"
+        cursor = {
+          inactive_timeout = 10;
+          enable_hyprcursor = false;
+        };
+      };
 
-        SIGNAL="0"
-        if [ "$IS_WIFI" -eq 1 ]; then
-          SIGNAL=$(grep -E "^[[:space:]]*$IFACE:" /proc/net/wireless | awk '{print int($3 * 100 / 70)}' 2>/dev/null || echo "0")
-        fi
+      extraConfig = ''
+        # Variabeldefinitioner måste komma först
+        $mainMod = SUPER
 
-        FREQ="N/A"
-        if command -v iw >/dev/null 2>&1 && [ "$IS_WIFI" -eq 1 ]; then
-          FREQ=$(iw dev "$IFACE" info 2>/dev/null | awk '/channel/ {print $2 " MHz"}' || echo "N/A")
-        fi
+        # DECORATION (placerad här för korrekt formatering)
+        decoration {
+            rounding = 10
 
-        # ── vnstat parsing ────────────────
-        TODAY="N/A"
-        YESTERDAY="N/A"
-        MONTH="N/A"
+            active_opacity = 1.0
+            inactive_opacity = 1.0
 
-        VNDUMP=$(vnstat -i "$IFACE" 2>/dev/null || true)
+            shadow {
+                enabled = true
+                range = 4
+                render_power = 3
+                color = rgba(1a1a1aee)
+            }
 
-        if [ -n "$VNDUMP" ]; then
-          TODAY=$(echo "$VNDUMP" | awk '/^ *today/ {print $2 " " $3 " / " $5 " " $6}')
-          YESTERDAY=$(echo "$VNDUMP" | awk '/^ *yesterday/ {print $2 " " $3 " / " $5 " " $6}')
-          MONTH=$(echo "$VNDUMP" | awk '/^[0-9]{4}-[0-9]{2}/ {print $2 " " $3 " / " $5 " " $6; exit}' || echo "N/A")
-        fi
+            blur {
+                enabled = true
+                size = 8
+                passes = 2
+                new_optimizations = true
+                vibrancy = 0.1696
+            }
+        }
 
-        # ── Ikon ──────────────────────────
-        ICON=""
-        if [ -n "$IPADDR" ] && [ "$IPADDR" != "N/A" ]; then
-          if [ "$IS_WIFI" -eq 1 ]; then
-            ICON=""
-          else
-            ICON=""
-          fi
-        fi
+        # MONITORS
+        monitor= eDP-1, 1920x1080, 0x0, 1
 
-        # ── JSON till Waybar ──────────────
-        TEXT_JSON=$(echo -n "$ICON  $ESSID" | jq -Rs .)
-        TOOLTIP_JSON=$(echo -e "Interface: $IFACE\nIP: $IPADDR\nSignal: $SIGNAL%\nFreq: $FREQ\n\nToday: $TODAY\nYesterday: $YESTERDAY\nMonth: $MONTH" | jq -Rs .)
+        # MY PROGRAMS
+        $terminal = ${pkgs.kitty}/bin/kitty
+        $fileManager = ${pkgs.nautilus}/bin/nautilus
+        $menu = ${pkgs.rofi-wayland}/bin/rofi
+        $browser = ${pkgs.firefox}/bin/firefox
 
-        printf '{"text":%s,"tooltip":%s,"class":"net"}\n' "$TEXT_JSON" "$TOOLTIP_JSON"
-        sleep 5  # Uppdatera var 5:e sekund
-      done
-    '' // {
-      # Beroenden som behövs för att köra skriptet
-      nativeBuildInputs = [ iproute2 iw vnstat jq ];
-    })
-  ];
+        # ... (resten av din extraConfig, som AUTOSTART, ANIMATIONS, KEYBINDINGS, etc.) ...
+        # ... (Jag utelämnar dem här för korthetens skull, men de ska vara kvar)
+        
+        # AUTOSTART
+        exec-once = ${pkgs.waybar}/bin/waybar
+        exec-once = ${pkgs.hyprpaper}/bin/hyprpaper
+        exec-once = ${pkgs.hypridle}/bin/hypridle
+        exec-once = /home/anders/.config/Scripts/wallpaper-changer.sh --random 900
+        exec-once = ${pkgs.trayscale}/bin/trayscale --hide-window
+        exec-once = /home/anders/.config/Scripts/battery-notify
+        exec-once = ${pkgs.hyprland}/bin/hyprctl setcursor Adwaita 24
+
+        # ANIMATIONS
+        animations {
+            enabled = yes
+            bezier = easeOutQuint,0.23,1,0.32,1
+            bezier = easeInOutCubic,0.65,0.05,0.36,1
+            bezier = linear,0,0,1,1
+            bezier = almostLinear,0.5,0.5,0.75,1.0
+            bezier = quick,0.15,0,0.1,1
+            animation = global, 1, 10, default
+            animation = border, 1, 5.39, easeOutQuint
+            animation = windows, 1, 4.79, easeOutQuint
+            animation = windowsIn, 1, 4.1, easeOutQuint, popin 87%
+            animation = windowsOut, 1, 1.49, linear, popin 87%
+            animation = fadeIn, 1, 1.73, almostLinear
+            animation = fadeOut, 1, 1.46, almostLinear
+            animation = fade, 1, 3.03, quick
+            animation = layers, 1, 3.81, easeOutQuint
+            animation = layersIn, 1, 4, easeOutQuint, fade
+            animation = layersOut, 1, 1.5, linear, fade
+            animation = fadeLayersIn, 1, 1.79, almostLinear
+            animation = fadeLayersOut, 1, 1.39, almostLinear
+            animation = workspaces, 1, 1.94, almostLinear, fade
+            animation = workspacesIn, 1, 1.21, almostLinear, fade
+            animation = workspacesOut, 1, 1.94, almostLinear, fade
+        }
+
+        # KEYBINDINGS
+        bind = $mainMod, RETURN, exec, $terminal
+        bind = $mainMod, Q, killactive,
+        bind = $mainMod, B, exec, $browser
+        bind = $mainMod, M, exit,
+        bind = $mainMod CTRL, Q, exec, ~/.config/rofi/scripts/powermenu_t1
+        bind = $mainMod, E, exec, $fileManager
+        bind = $mainMod, V, togglefloating,
+        bind = $mainMod CTRL, F, fullscreen
+        bind = $mainMod CTRL, RETURN, exec, ~/.config/rofi/scripts/launcher_t1
+        bind = $mainMod, P, pseudo, # dwindle
+        bind = $mainMod, J, togglesplit, # dwindle
+
+        # Move focus
+        bind = $mainMod, left, movefocus, l
+        bind = $mainMod, right, movefocus, r
+        bind = $mainMod, up, movefocus, u
+        bind = $mainMod, down, movefocus, d
+
+        # Switch workspaces
+        bind = $mainMod, 1, workspace, 1
+        bind = $mainMod, 2, workspace, 2
+        bind = $mainMod, 3, workspace, 3
+        bind = $mainMod, 4, workspace, 4
+        bind = $mainMod, 5, workspace, 5
+        bind = $mainMod, 6, workspace, 6
+        bind = $mainMod, 7, workspace, 7
+        bind = $mainMod, 8, workspace, 8
+        bind = $mainMod, 9, workspace, 9
+        bind = $mainMod, 0, workspace, 10
+
+        # Move active window
+        bind = $mainMod SHIFT, 1, movetoworkspace, 1
+        bind = $mainMod SHIFT, 2, movetoworkspace, 2
+        bind = $mainMod SHIFT, 3, movetoworkspace, 3
+        bind = $mainMod SHIFT, 4, movetoworkspace, 4
+        bind = $mainMod SHIFT, 5, movetoworkspace, 5
+        bind = $mainMod SHIFT, 6, movetoworkspace, 6
+        bind = $mainMod SHIFT, 7, movetoworkspace, 7
+        bind = $mainMod SHIFT, 8, movetoworkspace, 8
+        bind = $mainMod SHIFT, 9, movetoworkspace, 9
+        bind = $mainMod SHIFT, 0, movetoworkspace, 10
+
+        # Special workspace
+        bind = $mainMod, S, togglespecialworkspace, magic
+        bind = $mainMod SHIFT, S, movetoworkspace, special:magic
+
+        # Scroll workspaces
+        bind = $mainMod, mouse_down, workspace, e+1
+        bind = $mainMod, mouse_up, workspace, e-1
+
+        # Move/resize windows
+        bindm = $mainMod, mouse:272, movewindow
+        bindm = $mainMod, mouse:273, resizewindow
+
+        # Multimedia keys
+        bindel = ,XF86AudioRaiseVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+        bindel = ,XF86AudioLowerVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+        bindel = ,XF86AudioMute, exec, ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+        bindel = ,XF86AudioMicMute, exec, ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+        bindel = ,XF86MonBrightnessUp, exec, ${pkgs.brightnessctl}/bin/brightnessctl s 10%+
+        bindel = ,XF86MonBrightnessDown, exec, ${pkgs.brightnessctl}/bin/brightnessctl s 10%-
+        bindl = , XF86AudioNext, exec, ${pkgs.playerctl}/bin/playerctl next
+        bindl = , XF86AudioPause, exec, ${pkgs.playerctl}/bin/playerctl play-pause
+        bindl = , XF86AudioPlay, exec, ${pkgs.playerctl}/bin/playerctl play-pause
+        bindl = , XF86AudioPrev, exec, ${pkgs.playerctl}/bin/playerctl previous
+
+        # WINDOWS AND WORKSPACES
+        layerrule = blur, rofi
+        layerrule = blur, dunst
+        layerrule = ignorezero, dunst
+        windowrule = fullscreen, class:Waydroid, title:Waydroid
+        windowrulev2 = suppressevent maximize, class:.*
+        windowrulev2 = nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0
+      '';
+    };
+  };
 }

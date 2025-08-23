@@ -10,6 +10,14 @@
     ../../modules/profiles/desktop.nix
   ];
 
+    # ===============================================================
+    # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
+    # ===============================================================
+    # Detta aktiverar Home Manager som en systemmodul så att vi kan
+    # konfigurera den nedan.
+    inputs.home-manager.nixosModules.default
+  ];
+
   # Värdnamnet är redan korrekt för denna maskin
   networking.hostName = "laptop-nvidia";
 
@@ -62,6 +70,15 @@
     usbutils
     acpi
   ];
+
+  # ===============================================================
+  # == 2. TILLDELA EN HOME MANAGER-KONFIGURATION TILL ANVÄNDAREN  ==
+  # ===============================================================
+  # Här talar vi om för Home Manager att den ska hantera användaren "anders"
+  # och att den ska använda konfigurationen från vår nya fil.
+  home-manager.users.anders = {
+    imports = [ ../../modules/home/anders.nix ];
+  };
 
   # Overlay för att göra 'pkgs.unstable' tillgänglig
   nixpkgs.overlays = [
