@@ -5,6 +5,7 @@
     ../../modules/hardware/amd.nix
     ../../modules/common/base.nix
     ../../modules/profiles/mediacenter.nix # Denna ger bara mediaprogram
+    ../../modules/profiles/server.nix 
   ];
 
     # ===============================================================

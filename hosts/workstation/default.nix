@@ -1,39 +1,41 @@
 { pkgs, inputs, ... }:
+
 {
   imports = [
+    # Hårdvara (se till att denna fil finns!)
     ./hardware-configuration.nix
+    # Välj rätt GPU-modul för din workstation (t.ex. nvidia.nix)
     ../../modules/hardware/nvidia.nix
-    ../../modules/common/base.nix
-    ../../modules/common/utils.nix   # <-- LÄGG TILL DENNA RAD
-    ../../modules/profiles/desktop.nix
-  ];
 
-    # ===============================================================
-    # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
-    # ===============================================================
-    # Detta aktiverar Home Manager som en systemmodul så att vi kan
-    # konfigurera den nedan.
+    # Gemensam bas
+    ../../modules/common/base.nix
+    ../../modules/common/utils.nix
+
+    # Profiler
+    ../../modules/profiles/desktop.nix
+
+    # Home Manager
     inputs.home-manager.nixosModules.default
   ];
 
   # Unika inställningar för denna dator
   networking.hostName = "workstation";
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
-  # Definiera unstable-pkgs HÄR, en gång.
-  nix.extraOptions = ''
-    experimental-features = nix-command flakes;
+  # Tangentbordslayout för konsol
+  console.keyMap = "sv-latin1";
 
-  # ===============================================================
-  # == 2. TILLDELA EN HOME MANAGER-KONFIGURATION TILL ANVÄNDAREN  ==
-  # ===============================================================
-  # Här talar vi om för Home Manager att den ska hantera användaren "anders"
-  # och att den ska använda konfigurationen från vår nya fil.
+  # Bootloader (ingen LUKS här, antagligen)
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+  };
+
+  # Home Manager-konfiguration för din användare
   home-manager.users.anders = {
     imports = [ ../../modules/home/anders.nix ];
   };
 
+  # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {
@@ -41,7 +43,8 @@
         config.allowUnfree = true;
       };
     })
-  ];
+  ]; # <-- Kontrollera att denna hakparentes finns
 
   system.stateVersion = "25.05";
-}
+
+} # <-- DET ÄR TROLIGTVIS DENNA MÅSVINGE SOM SAKNAS

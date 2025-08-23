@@ -12,6 +12,7 @@
 
     # Profiler (Här kommer grafiken in!)
     ../../modules/profiles/desktop.nix
+    ../../modules/profiles/server.nix 
 
     # ===============================================================
     # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
