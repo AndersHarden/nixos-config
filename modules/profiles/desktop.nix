@@ -4,10 +4,12 @@
   imports = [
     # Den nya modulen som aktiverar SDDM och den grafiska miljön
     ../desktop/environment.nix
-    ../desktop/plymouth.nix   
+    ../desktop/plymouth.nix
+
 
     # Dina befintliga moduler för programvara
     ../desktop/hyprland.nix
+    ../desktop/theme.nix 
     ../desktop/browsers.nix
     ../desktop/chat.nix
     ../desktop/fonts.nix
