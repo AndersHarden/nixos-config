@@ -62,6 +62,7 @@ in
             deactivated = "";
           };
         };
+      
 
         "custom/battery" = {
           format = "{}";
@@ -136,7 +137,8 @@ in
     # från vår mall och placera den där Waybar förväntar sig den.
     templates = {
       "waybar/style.css" = builtins.readFile ./waybar/style.css.tmpl;
-
+    };
+  };
   # Del 2: Placera dina anpassade skript i hemkatalogen
   home.file = {
     "${scriptsDir}/battery.sh" = {
