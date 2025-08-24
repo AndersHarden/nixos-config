@@ -1,8 +1,9 @@
+/* Plats: ~/nixos-config/modules/home/waybar/style.css */
 * {
     border: none;
     font-family: JetBrainsMono Nerd Font, Font Awesome, Arial, sans-serif;
     font-size: 13px;
-    color: #ffffff; /* Detta ersätts dynamiskt av wallpaper-changer.sh */
+    /* 'color' är borttagen. Den styrs nu av colors-waybar.css */
     border-radius: 20px;
 }
 
@@ -10,10 +11,8 @@ window#waybar {
     background: rgba(0, 0, 0, 0);
 }
 
-/* Tooltip som dynamiskt ändras */
 tooltip {
-    color: #ffffff; /* Ersätts av wallpaper-changer.sh */
-    background-color: rgba(0,0,0,0.85); /* Ersätts av wallpaper-changer.sh */
+    /* 'color' och 'background-color' är borttagna. */
     border-radius: 8px;
     padding: 5px 10px;
 }
@@ -30,35 +29,16 @@ tooltip {
 }
 
 #custom-resourcemon {
-    margin-right: 12px; /* Lägger till 8 pixlar mellanrum till höger om modulen */
+    margin-right: 12px;
 }
 
 #custom-battery {
     padding: 0 10px;
-    color: #ffffff; /* Vit text som standard */
 }
 
-/* När batteriet laddas (klass från skriptet) */
-#custom-battery.charging {
-    color: #ffffff; /* Grön färg */
-}
+/* Klasserna för batteristatus behöver inga färgdefinitioner här.
+   De definieras i ~/.cache/wal/colors-waybar.css */
 
-/* När batterinivån är låg (klass från skriptet) */
-#custom-battery.warning {
-    color: #ffffff; /* Orange färg */
-}
-
-/* När batterinivån är kritisk (klass från skriptet) */
-#custom-battery.critical {
-    color: #ffffff; /* Röd färg */
-    animation-name: blink;
-    animation-duration: 0.5s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    animation-direction: alternate;
-}
-
-/* Enkel blink-animation för kritiskt läge */
 @keyframes blink {
     to {
         opacity: 0.5;

@@ -7,4 +7,7 @@
   home.file.".config/wallpaper_dirs.txt" = {
     source = ./config-files/wallpaper_dirs.txt;
   };
+  home.file.".config/default-wallpaper.jpg" = {
+    source = ./assets/default.jpg;
+  };
 }

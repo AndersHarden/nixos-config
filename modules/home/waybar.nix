@@ -1,19 +1,19 @@
-# Plats: modules/home/waybar.nix
+# Plats: ~/nixos-config/modules/home/waybar.nix
 { pkgs, ... }:
 
 let
-  # Vi definierar sökvägen till dina skript en gång här uppe
-  # för att göra koden renare. Sökvägen är relativ till /home/anders.
   scriptsDir = ".config/waybar/scripts";
 in
 {
   # Del 1: Konfigurera Waybar-programmet
   programs.waybar = {
     enable = true;
-
-
-    # 'settings' är en direkt översättning av din JSON-config.
-    # Vi definierar bara en bar som heter "mainBar".
+    # Skapa en huvud-CSS som importerar de dynamiska färgerna från Pywal
+    # och sedan vår statiska layoutfil.
+    style = ''
+      @import "/home/anders/.cache/wal/colors-waybar.css";
+      ${builtins.readFile ./waybar/style.css}
+    '';
     settings = {
       mainBar = {
         "modules-left" = [ "hyprland/workspaces" ];
@@ -27,20 +27,20 @@ in
           "pulseaudio"
           "custom/battery"
           "custom/power"
-          "custom/theme-icon"
-          "custom/theme-color"
+ #         "custom/theme-icon"
+ #         "custom/theme-color"
         ];
 
         "custom/resourcemon" = {
           format = "{}";
           interval = 2;
-          exec = "${scriptsDir}/resource-monitor.sh"; # Robust sökväg
+          exec = "${scriptsDir}/resource-monitor.sh";
           "return-type" = "json";
           "on-click" = "${pkgs.kitty}/bin/kitty -e ${pkgs.btop}/bin/btop";
         };
 
         "custom/network-vnstat" = {
-          exec = "waybar-network-vnstat"; # Detta är skriptet vi skapade i hyprland.nix
+          exec = "waybar-network-vnstat";
           format = "{}";
           tooltip = true;
           "return-type" = "json";
@@ -68,8 +68,8 @@ in
           format = "{}";
           "return-type" = "json";
           interval = 5;
-          exec = "${scriptsDir}/battery.sh"; # Robust sökväg
-          "on-click-middle" = "ladda-fullt"; # Detta skript skapade vi i laptop.nix
+          exec = "${scriptsDir}/battery.sh";
+          "on-click-middle" = "ladda-fullt";
           tooltip = true;
         };
 
@@ -80,7 +80,7 @@ in
 
         clock = {
           "tooltip-format" = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          "on-click" = "${pkgs.gnome.gnome-calendar}/bin/gnome-calendar";
+          "on-click" = "${pkgs.gnome-calendar}/bin/gnome-calendar";
         };
 
         pulseaudio = {
@@ -104,14 +104,14 @@ in
 
         "custom/power" = {
           format = " ";
-          "on-click" = "~/.config/rofi/scripts/powermenu_t1"; # OBS: Detta skript behöver också hanteras
+          "on-click" = "~/.config/rofi/scripts/powermenu_t1";
         };
 
         "custom/scratchpad-indicator" = {
           "format-text" = "{}hi";
           "return-type" = "json";
           interval = 3;
-          exec = "~/.local/bin/scratchpad-indicator 2> /dev/null"; # OBS: Detta är inte reproducerbart
+          exec = "~/.local/bin/scratchpad-indicator 2> /dev/null";
           "exec-if" = "exit 0";
           "on-click" = "${pkgs.hyprland}/bin/hyprlandmsg 'scratchpad show'";
           "on-click-right" = "${pkgs.hyprland}/bin/hyprlandmsg 'move scratchpad'";
@@ -131,6 +131,7 @@ in
       };
     };
   };
+<<<<<<< HEAD
   programs.pywal = {
     enable = true;
     # Detta talar om för pywal att den ska generera en CSS-fil
@@ -140,14 +141,23 @@ in
     };
   };
   # Del 2: Placera dina anpassade skript i hemkatalogen
+=======
+
+  # Del 2: Hantera anpassade filer
+>>>>>>> 41939e5 (feat(core): Finalize and stabilize modular configuration)
   home.file = {
+    # Placera dina anpassade skript i hemkatalogen
     "${scriptsDir}/battery.sh" = {
       source = ./waybar/scripts/battery.sh;
-      executable = true; # Gör skriptet körbart
+      executable = true;
     };
     "${scriptsDir}/resource-monitor.sh" = {
       source = ./waybar/scripts/resource-monitor.sh;
-      executable = true; # Gör skriptet körbart
+      executable = true;
     };
+
+    # Skapa en tom fallback-fil för att säkerställa att Waybar alltid
+    # kan starta, även innan 'wal' har körts.
+    ".cache/wal/colors-waybar.css".text = "";
   };
 }

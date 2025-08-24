@@ -1,3 +1,4 @@
+# Plats: ~/nixos-config/hosts/laptop-intel/default.nix
 { pkgs, inputs, ... }:
 
 {
@@ -5,37 +6,38 @@
     # Hårdvara
     ./hardware-configuration.nix
     ../../modules/hardware/intel.nix
+    ../../modules/hardware/laptop.nix # Specifika laptop-inställningar
 
     # Gemensam bas
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
 
-    # Profiler (Här kommer grafiken in!)
+    # Profiler
     ../../modules/profiles/desktop.nix
+    # Notera: server.nix är borttagen för ökad säkerhet på en laptop
 
-    # ===============================================================
-    # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
-    # ===============================================================
-    # Detta aktiverar Home Manager som en systemmodul så att vi kan
-    # konfigurera den nedan.
-    inputs.home-manager.nixosModules.default
+    # Aktivera Home Manager
+    inputs.home-manager.nixosModules.default,
+
+    # Importera din centrala användarkonfiguration
+    ../../modules/home/anders.nix
   ];
 
-  # Unika inställningar för denna dator
+  # Unika inställningar
   networking.hostName = "laptop-intel";
-
-  # Tangentbordslayout för LUKS och konsol
   console.keyMap = "sv-latin1";
 
   # LUKS och Bootloader
   boot = {
-    plymouth = {
-      enable = true;
-      theme = "loader_2";
-      themePackages = with pkgs; [
-        (adi1090x-plymouth-themes.override { selected_themes = [ "loader_2" ]; })
-      ];
+    initrd.luks.devices."root" = {
+      device = "/dev/nvme0n1p5";
+      preLVM = true;
     };
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+<<<<<<< HEAD
 
     # VIKTIGT: Verifiera att denna LUKS-partition är korrekt för DENNA dator!
     # Kör `ls -l /dev/disk/by-uuid/` för att hitta rätt UUID.
@@ -58,9 +60,11 @@
   # och att den ska använda konfigurationen från vår nya fil.
   home-manager.users.anders = {
     imports = [ ../../modules/home/anders.nix ];
+=======
+>>>>>>> 41939e5 (feat(core): Finalize and stabilize modular configuration)
   };
 
-  # Overlay för att göra 'pkgs.unstable' tillgänglig för Blender, Waybar, etc.
+  # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {

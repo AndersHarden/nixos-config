@@ -1,86 +1,45 @@
+# Plats: ~/nixos-config/hosts/laptop-nvidia/default.nix
 { pkgs, inputs, ... }:
 
 {
   imports = [
+    # Hårdvara (se till att denna fil är genererad på denna dator)
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
-    ../../modules/hardware/laptop.nix # Extra laptop-inställningar
+    ../../modules/hardware/laptop.nix # Specifika laptop-inställningar
+
+    # Gemensam bas
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
+
+    # Profiler
     ../../modules/profiles/desktop.nix
+    # Notera: server.nix är borttagen för ökad säkerhet på en laptop
 
+    # Aktivera Home Manager
+    inputs.home-manager.nixosModules.default,
 
-    # ===============================================================
-    # == 1. IMPORTERA HOME MANAGER-MODULEN                         ==
-    # ===============================================================
-    # Detta aktiverar Home Manager som en systemmodul så att vi kan
-    # konfigurera den nedan.
-    inputs.home-manager.nixosModules.default
+    # Importera din centrala användarkonfiguration
+    ../../modules/home/anders.nix
   ];
 
-  # Värdnamnet är redan korrekt för denna maskin
+  # Unika inställningar
   networking.hostName = "laptop-nvidia";
+  console.keyMap = "sv-latin1";
 
-  # ===============================================================
-  # == HÅRDVARUSPECIFIKA INSTÄLLNINGAR FÖR NVIDIA-LAPTOPPEN      ==
-  # ===============================================================
-
+  # LUKS och Bootloader (anpassa efter denna dators partitioner)
   boot = {
-    plymouth = {
-      enable = true;
-      theme = "loader_2";
-      themePackages = with pkgs; [
-        (adi1090x-plymouth-themes.override { selected_themes = [ "loader_2" ]; })
-      ];
+    initrd.luks.devices."root" = {
+      device = "/dev/disk/by-uuid/DITT-UNIKA-UUID-HÄR";
+      preLVM = true;
     };
-
-    # VIKTIGT: Verifiera att denna LUKS-partition är korrekt för DENNA dator!
-    # Kör `ls -l /dev/disk/by-uuid/` för att hitta rätt UUID.
-    initrd.systemd.enable = true;
-    initrd.luks.devices."root".device = "/dev/nvme0n1p5";
-    initrd.luks.devices."root".preLVM = true;
-
-    consoleLogLevel = 3;
-    initrd.verbose = false;
-    kernelParams = [
-      "quiet" "splash" "boot.shell_on_fail" "udev.log_priority=3"
-      "rd.systemd.show_status=auto" "plymouth.use-initrd=true"
-    ];
-
-    # Ladda Intel-drivrutinen tidigt. Detta är ofta nödvändigt för
-    # NVIDIA Optimus-laptops där Intel-GPU:n hanterar skärmen.
-    initrd.kernelModules = [ "i915" ];
-
-    kernelPackages = pkgs.linuxPackages_latest;
     loader = {
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
   };
 
-  # ===============================================================
-  # == FINGERAVTRYCKSLÄSAREN ÄR NU HELT BORTTAGEN                ==
-  # ===============================================================
-
-  # Swapfil
-  swapDevices = [ { device = "/swapfile"; size = 8 * 1024; } ];
-
-  # Unika paket för just denna laptop
-  environment.systemPackages = with pkgs; [
-    usbutils
-    acpi
-  ];
-
-  # ===============================================================
-  # == 2. TILLDELA EN HOME MANAGER-KONFIGURATION TILL ANVÄNDAREN  ==
-  # ===============================================================
-  # Här talar vi om för Home Manager att den ska hantera användaren "anders"
-  # och att den ska använda konfigurationen från vår nya fil.
-  home-manager.users.anders = {
-    imports = [ ../../modules/home/anders.nix ];
-  };
-
-  # Overlay för att göra 'pkgs.unstable' tillgänglig
+  # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {
@@ -88,9 +47,7 @@
         config.allowUnfree = true;
       };
     })
-  ]; # <-- HAKPARENTESEN FÖR LISTAN SLUTAR HÄR
+  ];
 
-  # Denna rad låg felaktigt INUTI overlays-listan
   system.stateVersion = "25.05";
-
-} # <-- DENNA AVSLUTANDE MÅSVINGE SAKNADES
+}

@@ -17,5 +17,7 @@
     ../desktop/slicer.nix
     ../desktop/python.nix
     ../desktop/nix-ld.nix
+    ../desktop/packages.nix
+#    ../desktop/theme.nix # <-- LÄGG TILL DENNA RAD
   ];
 }

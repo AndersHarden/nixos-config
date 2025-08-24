@@ -1,6 +1,7 @@
 # Plats: modules/desktop/theme.nix
 { pkgs, ... }:
 {
+<<<<<<< HEAD
   # Aktivera NixOS-modulen för Pywal
   programs.pywal.enable = true;
 
@@ -17,4 +18,8 @@
       };
     };
   };
+=======
+  # Detta säkerställer bara att NixOS känner till pywal.
+  programs.pywal.enable = true;
+>>>>>>> 41939e5 (feat(core): Finalize and stabilize modular configuration)
 }

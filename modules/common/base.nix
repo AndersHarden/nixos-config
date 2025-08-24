@@ -17,6 +17,8 @@
     networkmanager.enable = false;
   };
 
+  services.upower.enable = true;
+
   # Ljud
   security.rtkit.enable = true;
   services.pipewire.enable = true;
@@ -39,5 +41,6 @@
     fastfetch
     btop
     nautilus
+    adwaita-icon-theme
   ];
 }

@@ -1,10 +1,10 @@
+# Plats: ~/nixos-config/hosts/workstation/default.nix
 { pkgs, inputs, ... }:
 
 {
   imports = [
-    # Hårdvara (se till att denna fil finns!)
+    # Hårdvara (se till att denna fil är genererad på denna dator)
     ./hardware-configuration.nix
-    # Välj rätt GPU-modul för din workstation (t.ex. nvidia.nix)
     ../../modules/hardware/nvidia.nix
 
     # Gemensam bas
@@ -13,26 +13,23 @@
 
     # Profiler
     ../../modules/profiles/desktop.nix
+    ../../modules/profiles/server.nix   # Aktiverar SSH
 
-    # Home Manager
-    inputs.home-manager.nixosModules.default
+    # Aktivera Home Manager
+    inputs.home-manager.nixosModules.default,
+
+    # Importera din centrala användarkonfiguration
+    ../../modules/home/anders.nix
   ];
 
-  # Unika inställningar för denna dator
+  # Unika inställningar
   networking.hostName = "workstation";
-
-  # Tangentbordslayout för konsol
   console.keyMap = "sv-latin1";
 
-  # Bootloader (ingen LUKS här, antagligen)
+  # Bootloader (antagligen ingen LUKS på en stationär)
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
-  };
-
-  # Home Manager-konfiguration för din användare
-  home-manager.users.anders = {
-    imports = [ ../../modules/home/anders.nix ];
   };
 
   # Overlay för instabila paket
@@ -43,8 +40,7 @@
         config.allowUnfree = true;
       };
     })
-  ]; # <-- Kontrollera att denna hakparentes finns
+  ];
 
   system.stateVersion = "25.05";
-
-} # <-- DET ÄR TROLIGTVIS DENNA MÅSVINGE SOM SAKNAS
+}
