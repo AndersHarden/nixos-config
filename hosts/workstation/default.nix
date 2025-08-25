@@ -3,7 +3,7 @@
 
 {
   imports = [
-    # Hårdvara (se till att denna fil är genererad på denna dator)
+    # Hårdvara (måste genereras på denna dator)
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
 
@@ -13,9 +13,10 @@
 
     # Profiler
     ../../modules/profiles/desktop.nix
-    ../../modules/profiles/server.nix   # Aktiverar SSH
+    ../../modules/profiles/services.nix # För Syncthing/Tailscale
+    ../../modules/profiles/server.nix   # För SSH
 
-    # Aktivera Home Manager
+    # Aktivera Home Manager som en systemmodul
     inputs.home-manager.nixosModules.default,
 
     # Importera din centrala användarkonfiguration
@@ -26,7 +27,7 @@
   networking.hostName = "workstation";
   console.keyMap = "sv-latin1";
 
-  # Bootloader (antagligen ingen LUKS på en stationär)
+  # Bootloader (utan LUKS, vilket är vanligt för en stationär dator)
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;

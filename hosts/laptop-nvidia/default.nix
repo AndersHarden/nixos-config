@@ -3,7 +3,7 @@
 
 {
   imports = [
-    # Hårdvara (se till att denna fil är genererad på denna dator)
+    # Hårdvara (måste genereras på denna dator)
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
     ../../modules/hardware/laptop.nix # Specifika laptop-inställningar
@@ -14,7 +14,8 @@
 
     # Profiler
     ../../modules/profiles/desktop.nix
-    # Notera: server.nix är borttagen för ökad säkerhet på en laptop
+    ../../modules/profiles/services.nix # För Syncthing/Tailscale
+    # Notera: server.nix (SSH) är exkluderad för säkerhet
 
     # Aktivera Home Manager
     inputs.home-manager.nixosModules.default,
@@ -27,10 +28,12 @@
   networking.hostName = "laptop-nvidia";
   console.keyMap = "sv-latin1";
 
-  # LUKS och Bootloader (anpassa efter denna dators partitioner)
+  # LUKS och Bootloader
+  # VIKTIGT: Du måste ersätta UUID:t nedan med det korrekta för denna dator!
+  # Kör `ls -l /dev/disk/by-uuid/` för att hitta det.
   boot = {
     initrd.luks.devices."root" = {
-      device = "/dev/disk/by-uuid/DITT-UNIKA-UUID-HÄR";
+      device = "/dev/disk/by-uuid/DITT-UNIKA-UUID-FÖR-NVIDIA-LAPTOP-HÄR";
       preLVM = true;
     };
     loader = {
