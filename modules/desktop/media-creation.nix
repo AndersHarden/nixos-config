@@ -7,7 +7,7 @@
   environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
     # 3D
     # Använd 'unstable' direkt, som kommer från overlayen
-#    unstable.blender
+    unstable.blender
     freecad
     openscad
     meshlab
