@@ -42,5 +42,6 @@
     btop
     nautilus
     adwaita-icon-theme
+    home-manager
   ];
 }

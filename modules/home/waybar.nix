@@ -131,7 +131,6 @@ in
       };
     };
   };
-<<<<<<< HEAD
   programs.pywal = {
     enable = true;
     # Detta talar om för pywal att den ska generera en CSS-fil
@@ -141,10 +140,6 @@ in
     };
   };
   # Del 2: Placera dina anpassade skript i hemkatalogen
-=======
-
-  # Del 2: Hantera anpassade filer
->>>>>>> 41939e5 (feat(core): Finalize and stabilize modular configuration)
   home.file = {
     # Placera dina anpassade skript i hemkatalogen
     "${scriptsDir}/battery.sh" = {

@@ -1,4 +1,4 @@
-# Plats: ~/nixos-config/modules/home/anders.nix
+# Plats: ~/nixos-config/modules/home/anders.nix (REN, FRISTÅENDE HM-MODUL)
 { config, pkgs, ... }:
 
 {
@@ -9,16 +9,16 @@
     ./scripts.nix
     ./config-files.nix
     ./hyprpaper.nix
-    ./hyprland.nix # <-- LÄGG TILL DENNA
-    ./pywal.nix  
+    ./hyprland.nix
+    ./pywal.nix
   ];
 
   # Grundläggande information
   home.username = "anders";
   home.homeDirectory = "/home/anders";
-  home.stateVersion = "25.05";
+  home.stateVersion = "24.05"; # Korrekt version
 
-  # PATH och profil (detta kommer att fungera nu)
+  # PATH och profil (detta är ett giltigt HM-alternativ)
   home.profile.enable = true;
 
   # Paket

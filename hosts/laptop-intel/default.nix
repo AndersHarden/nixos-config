@@ -1,12 +1,10 @@
 # Plats: ~/nixos-config/hosts/laptop-intel/default.nix
 { pkgs, inputs, ... }:
-
 {
   imports = [
     # Hårdvara
     ./hardware-configuration.nix
     ../../modules/hardware/intel.nix
-    ../../modules/hardware/laptop.nix # Specifika laptop-inställningar
 
     # Gemensam bas
     ../../modules/common/base.nix
@@ -14,16 +12,16 @@
 
     # Profiler
     ../../modules/profiles/desktop.nix
-    # Notera: server.nix är borttagen för ökad säkerhet på en laptop
+    ../../modules/profiles/server.nix
 
-    # Aktivera Home Manager
+    # Aktivera Home Manager som en systemmodul
     inputs.home-manager.nixosModules.default,
 
-    # Importera din centrala användarkonfiguration
+    # Importera din användarkonfiguration som en vanlig systemmodul
     ../../modules/home/anders.nix
   ];
 
-  # Unika inställningar
+  # Unika inställningar för denna dator
   networking.hostName = "laptop-intel";
   console.keyMap = "sv-latin1";
 
