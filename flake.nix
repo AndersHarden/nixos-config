@@ -17,28 +17,22 @@
       extra-trusted-public-keys = [ "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" ];
     };
 
-    # Endast denna sektion behövs för hybrid-metoden
     nixosConfigurations = {
       "laptop-intel" = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [ ./hosts/laptop-intel ];
       };
-      "laptop-nvidia" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/laptop-nvidia ];
+      # ... dina andra datorer ...
+    };
+
+    homeConfigurations = {
+      "anders@laptop-intel" = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.x86_64-linux;
+        extraSpecialArgs = { inherit inputs; };
+        modules = [ ./modules/home/anders.nix ];
       };
-      "workstation" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/workstation ];
-      };
-      "mediaplayer" = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
-        modules = [ ./hosts/mediaplayer ];
-      };
+      # ... dina andra användare ...
     };
   };
 }

@@ -1,8 +1,6 @@
-# Plats: ~/nixos-config/modules/home/anders.nix (REN, FRISTÅENDE HM-MODUL)
+# Plats: ~/nixos-config/modules/home/anders.nix
 { config, pkgs, ... }:
-
 {
-  # Importerar andra Home Manager-moduler
   imports = [
     ./kitty.nix
     ./waybar.nix
@@ -13,15 +11,15 @@
     ./pywal.nix
   ];
 
-  # Grundläggande information
   home.username = "anders";
   home.homeDirectory = "/home/anders";
-  home.stateVersion = "24.05"; # Korrekt version
+  home.stateVersion = "24.05";
 
-  # PATH och profil (detta är ett giltigt HM-alternativ)
-  home.profile.enable = true;
+  # Använd sessionVariables för att sätta $PATH, eftersom det fungerade
+  home.sessionVariables = {
+    PATH = "$HOME/.local/bin:$HOME/.nix-profile/bin:$PATH";
+  };
 
-  # Paket
   home.packages = with pkgs; [
     htop
     neofetch
@@ -31,16 +29,11 @@
     sysstat
   ];
 
-  # GTK-tema för muspekare
   gtk = {
     enable = true;
-    cursorTheme = {
-      name = "Adwaita";
-      size = 24;
-    };
+    cursorTheme = { name = "Adwaita"; size = 24; };
   };
 
-  # Programkonfigurationer
   programs.git = {
     enable = true;
     userName = "Anders Hardenborg";
