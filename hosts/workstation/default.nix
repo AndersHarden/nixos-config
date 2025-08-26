@@ -1,26 +1,14 @@
-# Plats: ~/nixos-config/hosts/workstation/default.nix
 { pkgs, inputs, ... }:
 
 {
   imports = [
-    # Hårdvara (måste genereras på denna dator)
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
-
-    # Gemensam bas
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
-
-    # Profiler
     ../../modules/profiles/desktop.nix
-    ../../modules/profiles/services.nix # För Syncthing/Tailscale
-    ../../modules/profiles/server.nix   # För SSH
-
-    # Aktivera Home Manager som en systemmodul
-    inputs.home-manager.nixosModules.default,
-
-    # Importera din centrala användarkonfiguration
-    ../../modules/home/anders.nix
+    ../../modules/profiles/services.nix
+    ../../modules/profiles/server.nix     # För SSH
   ];
 
   # Unika inställningar

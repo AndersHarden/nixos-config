@@ -43,5 +43,6 @@
     nautilus
     adwaita-icon-theme
     home-manager
+    kdePackages.kate
   ];
 }

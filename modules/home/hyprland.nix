@@ -1,5 +1,5 @@
 # Plats: ~/nixos-config/modules/home/hyprland.nix
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 {
   # Detta är en ren Home Manager-modul.

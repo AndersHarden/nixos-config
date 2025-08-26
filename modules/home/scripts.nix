@@ -1,5 +1,5 @@
 # Plats: ~/nixos-config/modules/home/scripts.nix
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   home.file.".local/bin/set-random-wallpaper" = {
     source = ./scripts/set-random-wallpaper.sh;

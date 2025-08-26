@@ -1,4 +1,3 @@
-# Plats: ~/nixos-config/hosts/laptop-intel/default.nix
 { pkgs, inputs, ... }:
 {
   imports = [
@@ -7,13 +6,14 @@
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
-    ../../modules/profiles/server.nix # Valfri
-    ../../modules/profiles/services.nix # För Syncthing
+    ../../modules/profiles/services.nix
   ];
-
+ 
+  # Unika inställningar för denna dator
   networking.hostName = "laptop-intel";
   console.keyMap = "sv-latin1";
 
+  # LUKS och Bootloader
   boot = {
     loader = {
       systemd-boot.enable = true;
@@ -21,6 +21,7 @@
     };
   };
 
+  # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {

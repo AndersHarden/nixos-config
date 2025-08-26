@@ -1,5 +1,5 @@
 # Plats: modules/home/hyprpaper.nix
-{ ... }:
+{ config, pkgs, ... }:
 {
   home.file.".config/hypr/hyprpaper.conf" = {
     text = ''

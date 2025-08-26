@@ -1,12 +1,13 @@
-# Plats: modules/home/waybar.nix
-{ pkgs, ... }:
+{ config, pkgs, ... }:
+
 {
   programs.waybar = {
     enable = true;
-    # Denna version hade en felaktig @import-regel, men den byggde.
-    # Vi kommer att fixa detta i nästa steg.
-    style = builtins.readFile ./waybar/style.css;
-    settings = { /* ... din fullständiga settings ... */ };
+    # du kan lägga in konfig här, eller använda `xdg.configFile`
   };
-  home.file = { /* ... dina skript ... */ };
+
+  xdg.configFile."waybar/config".source = ./waybar/config.jsonc;
+  xdg.configFile."waybar/style.css".source = ./waybar/style.css;
+
+  home.packages = with pkgs; [ jq ]; # ex. om du behöver extra paket
 }

@@ -1,46 +1,15 @@
-/* Plats: ~/nixos-config/modules/home/waybar/style.css */
-* {
-    border: none;
-    font-family: JetBrainsMono Nerd Font, Font Awesome, Arial, sans-serif;
-    font-size: 13px;
-    /* 'color' är borttagen. Den styrs nu av colors-waybar.css */
-    border-radius: 20px;
+/* ~/.config/waybar/style.css */
+@import url("/home/anders/.cache/waybar-color.css");
+
+/* Statusfältet */
+#waybar {
+    background: transparent;
+    font-family: JetBrainsMono, monospace;
+    font-size: 12px;
+    padding: 0 8px;
 }
 
-window#waybar {
-    background: rgba(0, 0, 0, 0);
-}
-
-tooltip {
-    /* 'color' och 'background-color' är borttagna. */
-    border-radius: 8px;
-    padding: 5px 10px;
-}
-
-/* Moduler */
-#cpu, #idle_inhibitor, #memory, #bluetooth, #network, #battery {
+/* Exempel på moduler */
+#clock, #cpu, #memory, #battery, #network {
     padding: 0 10px;
-}
-
-#custom-power {
-    border-radius: 100px;
-    margin: 5px;
-    padding: 1px 6px;
-}
-
-#custom-resourcemon {
-    margin-right: 12px;
-}
-
-#custom-battery {
-    padding: 0 10px;
-}
-
-/* Klasserna för batteristatus behöver inga färgdefinitioner här.
-   De definieras i ~/.cache/wal/colors-waybar.css */
-
-@keyframes blink {
-    to {
-        opacity: 0.5;
-    }
 }

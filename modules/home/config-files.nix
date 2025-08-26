@@ -1,5 +1,5 @@
 # Plats: modules/home/config-files.nix
-{ pkgs, ... }:
+{ config, ... }:
 {
   # Detta block talar om för Home Manager att skapa filen
   # ~/.config/wallpaper_dirs.txt och att dess innehåll ska
