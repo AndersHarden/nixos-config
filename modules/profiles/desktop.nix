@@ -14,6 +14,7 @@
     ../desktop/chat.nix
     ../desktop/fonts.nix
     ../desktop/media-creation.nix
+    ../desktop/mediaplayer.nix
     ../desktop/slicer.nix
     ../desktop/python.nix
     ../desktop/nix-ld.nix

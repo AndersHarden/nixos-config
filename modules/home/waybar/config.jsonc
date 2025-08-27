@@ -1,7 +1,19 @@
 {
+    "env": {
+        "PATH": "/home/anders/.local/bin:/home/anders/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin"
+    },
+
     "layer": "top",
     "modules-left": ["hyprland/workspaces"],
-    "modules-center": ["clock"],
-    "modules-right": ["network", "custom/color"]
+    "modules-center": ["clock", "idle_inhibitor"],
+    "modules-right": ["custom/network-vnstat"],
 
+    "custom/network-vnstat": {
+        "exec": "/home/anders/.local/bin/waybar-network-vnstat",
+        "interval": 5,
+        "return-type": "json",
+        "format": "{text}",
+        "tooltip": true,
+        "tooltip-format": "{tooltip}"
     }
+}
