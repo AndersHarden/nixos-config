@@ -1,8 +1,8 @@
-# Plats: ~/nixos-config/modules/home/scripts.nix
+# ~/nixos-config/modules/home/scripts.nix
 { config, pkgs, ... }:
 
 {
-  # --- Installera våra egna skript ---
+  # --- Egna skript ---
   home.file.".local/bin/set-random-wallpaper" = {
     source = ./scripts/set-random-wallpaper.sh;
     executable = true;
@@ -13,13 +13,15 @@
     executable = true;
   };
 
+  # --- Extra paket för skript ---
   home.packages = with pkgs; [
-    jq
     iproute2
     iw
+    jq
+    vnstat
   ];
 
-  # --- Systemd-tjänst och timer för wallpaper ---
+  # --- Systemd-tjänst och timer för wallpapers ---
   systemd.user.services.set-random-wallpaper = {
     Unit = { Description = "Set random wallpaper"; };
     Service = {

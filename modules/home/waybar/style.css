@@ -9,7 +9,17 @@
     padding: 0 8px;
 }
 
-/* Exempel på moduler */
-#clock, #cpu, #memory, #battery, #network {
-    padding: 0 10px;
+#tray,
+#clock,
+#custom-resource-monitor,
+#custom-network-vnstat,
+#bluetooth,
+#pulseaudio,
+#custom-battery{
+  min-width: 12px;
+  margin: 0 7.5px;
+}
+
+tooltip {
+  padding: 2px;
 }

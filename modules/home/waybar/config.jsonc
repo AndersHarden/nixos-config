@@ -6,14 +6,65 @@
     "layer": "top",
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock", "idle_inhibitor"],
-    "modules-right": ["custom/network-vnstat"],
+    "modules-right": ["custom/resource-monitor", "bluetooth", "custom/network-vnstat", "tray", "pulseaudio", "custom/battery" ],
+
+
+    "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": {
+        "activated": "",
+        "deactivated": ""
+        }
+    },
+
+    "clock": {
+        "interval": 60,
+        "tooltip": true,
+        "format": "{:%H.%M}",
+        "tooltip-format": "{:%Y-%m-%d}"
+    },
+
+    "custom/resource-monitor": {
+        "exec": "~/nixos-config/modules/home/waybar/scripts/resource-monitor.sh",
+        "format": "{text}",
+        "return-type": "json",
+        "interval": 5
+    },
+
+    "bluetooth": {
+        "format": "",
+        "format-disabled": "󰂲",
+        "format-connected": "",
+        "tooltip-format": "Devices connected: {num_connections}",
+        "on-click": "kitty --class=bluetui -e bluetui"
+    },
 
     "custom/network-vnstat": {
         "exec": "/home/anders/.local/bin/waybar-network-vnstat",
-        "interval": 5,
-        "return-type": "json",
         "format": "{text}",
-        "tooltip": true,
-        "tooltip-format": "{tooltip}"
+        "return-type": "json",
+        "interval": 5,
+        "on-click": "kitty --class=Impala -e impala"
+    },
+
+    "pulseaudio": {
+        "format": "{icon}",
+        "on-click": "alacritty --class=Wiremix -e wiremix",
+        "on-click-right": "pamixer -t",
+        "tooltip-format": "Playing at {volume}%",
+        "scroll-step": 5,
+        "format-muted": "󰝟",
+        "format-icons": {
+        "default": ["", "", ""]
+        }
+    },
+
+    "custom/battery": {
+        "exec": "~/nixos-config/modules/home/waybar/scripts/battery.sh",
+        "format": "{text}",
+        "return-type": "json",
+        "interval": 30
     }
+
 }
+

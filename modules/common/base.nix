@@ -25,6 +25,12 @@
   services.pipewire.alsa.enable = true;
   services.pipewire.pulse.enable = true;
 
+
+  # Bluetooth
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
+
   # Användare "anders"
   users.users.anders = {
     isNormalUser = true;
@@ -44,5 +50,6 @@
     adwaita-icon-theme
     home-manager
     kdePackages.kate
+    sysstat
   ];
 }

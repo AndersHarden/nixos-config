@@ -65,7 +65,24 @@ echo "Waybar-text ska bli: $text_color"
 # Waybar CSS – skriv till cache istället för nixos-hanterad config
 WAYBAR_CSS="$HOME/.cache/waybar-color.css"
 mkdir -p "$(dirname "$WAYBAR_CSS")"
-echo "* { color: $text_color; }" > "$WAYBAR_CSS"
+# Anpassa tooltip bakgrund beroende på textfärgen
+if [[ "$text_color" == "#000000" ]]; then
+    tooltip_bg="#ffffff"  # ljus bakgrund för mörk text
+else
+    tooltip_bg="#222222"  # mörk bakgrund för ljus text
+fi
+
+cat > "$WAYBAR_CSS" <<EOF
+* {
+  color: $text_color;
+}
+
+tooltip {
+  color: $text_color;
+  background-color: $tooltip_bg;
+}
+EOF
+
 
 # Signalera Waybar att läsa om CSS
 pkill -SIGUSR2 waybar 2>/dev/null || true
