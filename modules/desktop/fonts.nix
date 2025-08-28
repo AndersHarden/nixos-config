@@ -11,6 +11,7 @@
     noto-fonts-cjk-sans
     noto-fonts-emoji
     jetbrains-mono
+    nerd-fonts.jetbrains-mono
     fira-code
     fira-code-symbols
     mplus-outline-fonts.githubRelease
