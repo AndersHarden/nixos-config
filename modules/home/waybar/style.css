@@ -4,13 +4,14 @@
 /* Statusfältet */
 #waybar {
     background: transparent;
-    font-family: JetBrainsMono, monospace;
-    font-size: 12px;
+    font-family: JetBrainsMono Nerd Font, Font Awesome, Arial, sans-serif;
+    font-size: 13px;
     padding: 0 8px;
 }
 
 #tray,
 #clock,
+#idle_inhibitor,
 #custom-resource-monitor,
 #custom-network-vnstat,
 #bluetooth,

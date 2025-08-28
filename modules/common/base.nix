@@ -30,13 +30,16 @@
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 
+  # Diskhantering
+  services.gvfs.enable = true;
+  services.udisks2.enable = true;
+  security.polkit.enable = true;
 
   # Användare "anders"
   users.users.anders = {
     isNormalUser = true;
     description = "Anders Hardenborg";
     extraGroups = [ "networkmanager" "wheel" ];
-    # Du kan lägga till din hashedPassword här om du vill
   };
 
   # Grundläggande paket som alla behöver
@@ -51,5 +54,14 @@
     home-manager
     kdePackages.kate
     sysstat
+    sushi
+    loupe
+    gnome-decoder
+    ffmpegthumbnailer
+    glance
+    nautilus
+    gnome-disk-utility
+    gnome.gvfs
+    udisks2
   ];
 }

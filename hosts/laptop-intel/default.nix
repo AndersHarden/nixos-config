@@ -7,6 +7,8 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
+    ../../modules/services/ollama.nix
+    ../../modules/services/open-webui.nix
   ];
  
   # Unika inställningar för denna dator
