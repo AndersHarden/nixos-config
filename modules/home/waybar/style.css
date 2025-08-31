@@ -4,10 +4,11 @@
 /* Statusfältet */
 #waybar {
     background: transparent;
-    font-family: JetBrainsMono Nerd Font, Font Awesome, Arial, sans-serif;
+    font-family: "JetBrains Mono", "Font Awesome 6 Free", sans-serif;
     font-size: 13px;
     padding: 0 8px;
 }
+
 
 #tray,
 #clock,
@@ -21,6 +22,17 @@
   margin: 0 7.5px;
 }
 
+#custom-battery,
+#custom-network-vnstat,
+#custom-battery {
+  font-family: "JetBrains Mono Nerd Fonts", Arial, sans-serif;
+}
+
 tooltip {
   padding: 2px;
+}
+
+#custom-resource-monitor.fa-icon {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900; /* Solid variant */
 }
