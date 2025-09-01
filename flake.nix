@@ -1,6 +1,3 @@
-----------------------------------------
-#./flake.nix
-----------------------------------------
 {
   description = "Min familj av NixOS-maskiner";
 
@@ -18,7 +15,7 @@
       # Intel laptop
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
+        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
         modules = [
           ./hosts/laptop-intel
           ./modules/common/base.nix
@@ -26,6 +23,10 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # TA BORT DENNA DEL HELT OCH HÅLLET:
+            # home-manager.extraSpecialArgs = {
+            #   hostName = config.networking.hostName;
+            # };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -34,7 +35,7 @@
       # Nvidia laptop
       laptop-nvidia = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
+        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
         modules = [
           ./hosts/laptop-nvidia
           ./modules/common/base.nix
@@ -42,6 +43,10 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # TA BORT DENNA DEL HELT OCH HÅLLET:
+            # home-manager.extraSpecialArgs = {
+            #   hostName = config.networking.hostName;
+            # };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -50,7 +55,7 @@
       # Mediaspelare
       mediaplayer = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
+        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
         modules = [
           ./hosts/mediaplayer
           ./modules/common/base.nix
@@ -58,6 +63,10 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # TA BORT DENNA DEL HELT OCH HÅLLET:
+            # home-manager.extraSpecialArgs = {
+            #   hostName = config.networking.hostName;
+            # };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -66,7 +75,7 @@
       # Workstation
       workstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
+        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
         modules = [
           ./hosts/workstation
           ./modules/common/base.nix
@@ -74,6 +83,10 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
+            # TA BORT DENNA DEL HELT OCH HÅLLET:
+            # home-manager.extraSpecialArgs = {
+            #   hostName = config.networking.hostName;
+            # };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];

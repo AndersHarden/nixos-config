@@ -2,7 +2,7 @@
 #./modules/home/hyprland.nix
 ----------------------------------------
 # Plats: modules/home/hyprland.nix
-{ config, pkgs, hostConfig, ... }: # <--- Korrekt: tar emot hostConfig
+{ config, pkgs, hostName, ... }: # <--- Korrekt
 
 {
   # Se till att Hyprland är aktiverat i Home Manager också,
