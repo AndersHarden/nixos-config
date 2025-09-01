@@ -2,15 +2,24 @@
 {
   description = "Min familj av NixOS-maskiner";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.nixos.org/"
+    ];
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    home-manager.url = "github:nix-community/home-manager/release-25.05"; # Korrigera inputs-syntax
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: {
     nixosConfigurations = {
-      # Intel laptop
+      # Your existing configurations (laptop-intel, laptop-nvidia, etc.)
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
@@ -22,7 +31,7 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
-              hostName = "laptop-intel"; # Direkt värde
+              hostName = "laptop-intel";
               inherit inputs;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;

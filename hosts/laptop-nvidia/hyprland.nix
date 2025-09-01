@@ -7,7 +7,7 @@ let
     "# Denna fil hanteras av NixOS. Ändra inte manuellt."
     "# Host-specifika Hyprland-inställningar för laptop-intel"
     ""
-    "# MONITORS (Laptop Intel)"
+    "# MONITORS (Laptop nvidia)"
     "monitor= eDP-1, 1920x1080, 0x0, 1"
     ""
     "# AUTOSTART (Laptop Intel)"
