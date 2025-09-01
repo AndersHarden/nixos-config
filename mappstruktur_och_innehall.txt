@@ -1,5 +1,4 @@
 .
-├── flake.lock
 ├── flake.nix
 ├── hosts
 │   ├── laptop-intel
@@ -8,7 +7,8 @@
 │   │   └── hyprland.nix
 │   ├── laptop-nvidia
 │   │   ├── default.nix
-│   │   └── hardware-configuration.nix
+│   │   ├── hardware-configuration.nix
+│   │   └── hyprland.nix
 │   ├── mediaplayer
 │   │   └── default.nix
 │   └── workstation
@@ -83,6 +83,7 @@ Filinnehåll:
 ----------------------------------------
 #./flake.nix
 ----------------------------------------
+#./flake.nix
 {
   description = "Min familj av NixOS-maskiner";
 
@@ -100,7 +101,7 @@ Filinnehåll:
       # Intel laptop
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
+        specialArgs = { inherit inputs; }; # <--- Behåll denna
         modules = [
           ./hosts/laptop-intel
           ./modules/common/base.nix
@@ -108,10 +109,12 @@ Filinnehåll:
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            # TA BORT DENNA DEL HELT OCH HÅLLET:
-            # home-manager.extraSpecialArgs = {
-            #   hostName = config.networking.hostName;
-            # };
+            # KORRIGERING HÄR:
+            # extraSpecialArgs tar emot config från den omgivande NixOS-modulen
+            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
+              hostName = config.networking.hostName;
+              inherit inputs;
+            };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -120,7 +123,7 @@ Filinnehåll:
       # Nvidia laptop
       laptop-nvidia = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/laptop-nvidia
           ./modules/common/base.nix
@@ -128,10 +131,10 @@ Filinnehåll:
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            # TA BORT DENNA DEL HELT OCH HÅLLET:
-            # home-manager.extraSpecialArgs = {
-            #   hostName = config.networking.hostName;
-            # };
+            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
+              hostName = config.networking.hostName;
+              inherit inputs;
+            };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -140,7 +143,7 @@ Filinnehåll:
       # Mediaspelare
       mediaplayer = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/mediaplayer
           ./modules/common/base.nix
@@ -148,10 +151,10 @@ Filinnehåll:
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            # TA BORT DENNA DEL HELT OCH HÅLLET:
-            # home-manager.extraSpecialArgs = {
-            #   hostName = config.networking.hostName;
-            # };
+            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
+              hostName = config.networking.hostName;
+              inherit inputs;
+            };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -160,7 +163,7 @@ Filinnehåll:
       # Workstation
       workstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; }; # <--- ÅTERSTÄLL TILL DETTA
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/workstation
           ./modules/common/base.nix
@@ -168,10 +171,10 @@ Filinnehåll:
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            # TA BORT DENNA DEL HELT OCH HÅLLET:
-            # home-manager.extraSpecialArgs = {
-            #   hostName = config.networking.hostName;
-            # };
+            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
+              hostName = config.networking.hostName;
+              inherit inputs;
+            };
             home-manager.users.anders = import ./modules/home/anders.nix;
           }
         ];
@@ -518,6 +521,7 @@ in
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
+    ./hyprland.nix
   ];
 
   # Unika inställningar
@@ -546,74 +550,50 @@ in
 }
 
 ----------------------------------------
-#./flake.lock
+#./hosts/laptop-nvidia/hyprland.nix
 ----------------------------------------
-{
-  "nodes": {
-    "home-manager": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1756022458,
-        "narHash": "sha256-J1i35r4HfNDdPpwL0vOBaZopQudAUVtartEerc1Jryc=",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "9e3a33c0bcbc25619e540b9dfea372282f8a9740",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "type": "github"
-      }
-    },
-    "nixpkgs": {
-      "locked": {
-        "lastModified": 1756118950,
-        "narHash": "sha256-4a6FhTr4VcFEqFIUysjmVkRvYslO3RU0ug+XmiGq75E=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "edde2afc1f283db1cd3885392e6102c6d3c2b258",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "release-25.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs-unstable": {
-      "locked": {
-        "lastModified": 1755615617,
-        "narHash": "sha256-HMwfAJBdrr8wXAkbGhtcby1zGFvs+StOp19xNsbqdOg=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "20075955deac2583bb12f07151c2df830ef346b4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "root": {
-      "inputs": {
-        "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs",
-        "nixpkgs-unstable": "nixpkgs-unstable"
-      }
-    }
-  },
-  "root": "root",
-  "version": 7
-}
+# Plats: hosts/laptop-intel/hyprland.nix
+{ pkgs, config, ... }: # Lägg till 'config' här
 
+let
+  # Definiera den host-specifika Hyprland-konfigurationen som en sträng
+  hyprlandHostConfig = pkgs.lib.strings.concatStringsSep "\n" [
+    "# Denna fil hanteras av NixOS. Ändra inte manuellt."
+    "# Host-specifika Hyprland-inställningar för laptop-intel"
+    ""
+    "# MONITORS (Laptop Intel)"
+    "monitor= eDP-1, 1920x1080, 0x0, 1"
+    ""
+    "# AUTOSTART (Laptop Intel)"
+    "exec-once = waybar"
+    "exec-once = hyprpaper"
+    "exec-once = hypridle"
+    "exec-once = set-random-wallpaper"
+    "exec-once = trayscale --hide-window"
+    "# exec-once = /home/anders/.config/Scripts/battery-notify"
+    "exec-once = hyprctl setcursor Adwaita 24"
+    ""
+    "# Multimedia keys (Laptop Intel)"
+    "bindel = ,XF86AudioRaiseVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
+    "bindel = ,XF86AudioLowerVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+    "bindel = ,XF86AudioMute, exec, ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    "bindel = ,XF86AudioMicMute, exec, ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
+    "bindel = ,XF86MonBrightnessUp, exec, ${pkgs.brightnessctl}/bin/brightnessctl s 10%+"
+    "bindel = ,XF86MonBrightnessDown, exec, ${pkgs.brightnessctl}/bin/brightnessctl s 10%-"
+    "bindl = , XF86AudioNext, exec, ${pkgs.playerctl}/bin/playerctl next"
+    "bindl = , XF86AudioPause, exec, ${pkgs.playerctl}/bin/playerctl play-pause"
+    "bindl = , XF86AudioPlay, exec, ${pkgs.playerctl}/bin/playerctl play-pause"
+    "bindl = , XF86AudioPrev, exec, ${pkgs.playerctl}/bin/playerctl previous"
+  ];
+in
+{
+  imports = [
+    ../../modules/desktop/hyprland-base.nix
+  ];
+
+  # Skriv den host-specifika konfigurationen till /etc/hypr/hyprland-laptop-intel.conf
+  environment.etc."hypr/hyprland-${config.networking.hostName}.conf".text = hyprlandHostConfig;
+}
 
 ----------------------------------------
 #./modules/home/waybar/config.jsonc
@@ -996,10 +976,10 @@ printf '{"text": "%s", "tooltip": "%s", "class": "%s", "percentage": %d}\n' \
 ----------------------------------------
 #./modules/home/anders.nix
 ----------------------------------------
-{ config, pkgs, ... }: # <--- Korrekt signatur!
-
+#./modules/home/anders.nix
+{ config, pkgs, specialArgs, ... }: # <--- Ändrad signatur: tar emot specialArgs
 let
-  hostName = config.networking.hostName; # Hämta hostName här
+  hostName = specialArgs.hostName; # Hämta hostName från specialArgs
 in
 {
   # Enable home manager programs
@@ -1009,8 +989,9 @@ in
   # Kitty
   imports = [
     ./waybar.nix
-    # Skicka det mottagna hostName till hyprland.nix
-    (./hyprland.nix { inherit config pkgs hostName; }) # <--- Skicka vidare hostName
+    # Nu importerar vi hyprland.nix som en vanlig modul.
+    # hostName är tillgängligt i hyprland.nix via dess egen specialArgs.
+    ./hyprland.nix
     ./kitty.nix
     ./pywal.nix
     ./hyprpaper.nix
@@ -1022,7 +1003,6 @@ in
   home.sessionVariables = {
     PATH = "${config.home.homeDirectory}/.local/bin:${pkgs.stdenv.cc.cc}/bin:${pkgs.coreutils}/bin:${pkgs.git}/bin:${pkgs.gcc}/bin:${pkgs.bash}/bin";
   };
-
 
   # Exempel fontconfig (enkel, utan att skriva till xdg.configFile)
   home.file."${config.home.homeDirectory}/.config/fontconfig/conf.d/10-hm-fonts.conf".text = ''
@@ -1093,12 +1073,12 @@ in
 ----------------------------------------
 #./modules/home/hyprland.nix
 ----------------------------------------
-----------------------------------------
 #./modules/home/hyprland.nix
-----------------------------------------
 # Plats: modules/home/hyprland.nix
-{ config, pkgs, hostName, ... }: # <--- Korrekt
-
+{ config, pkgs, specialArgs, ... }: # <--- Ändrad signatur: tar emot specialArgs
+let
+  hostName = specialArgs.hostName; # Hämta hostName från specialArgs
+in
 {
   # Se till att Hyprland är aktiverat i Home Manager också,
   # men utan att definiera några inställningar här.
@@ -1116,7 +1096,7 @@ in
     source = /etc/hypr/hyprland-base.conf
 
     # Inkludera den host-specifika konfigurationen
-    source = /etc/hypr/hyprland-${hostConfig.networking.hostName}.conf
+    source = /etc/hypr/hyprland-${hostName}.conf # <--- Använder hostName direkt
 
     # Eventuella ytterligare användarspecifika inställningar kan läggas till här
     # (men det är oftast bättre att hålla dem i de systemgenererade filerna för enkelhetens skull)

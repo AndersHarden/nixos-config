@@ -1,7 +1,7 @@
-{ config, pkgs, ... }: # <--- Korrekt signatur!
-
+#./modules/home/anders.nix
+{ config, pkgs, specialArgs, ... }: # <--- Ändrad signatur: tar emot specialArgs
 let
-  hostName = config.networking.hostName; # Hämta hostName här
+  hostName = specialArgs.hostName; # Hämta hostName från specialArgs
 in
 {
   # Enable home manager programs
@@ -11,8 +11,9 @@ in
   # Kitty
   imports = [
     ./waybar.nix
-    # Skicka det mottagna hostName till hyprland.nix
-    (./hyprland.nix { inherit config pkgs hostName; }) # <--- Skicka vidare hostName
+    # Nu importerar vi hyprland.nix som en vanlig modul.
+    # hostName är tillgängligt i hyprland.nix via dess egen specialArgs.
+    ./hyprland.nix
     ./kitty.nix
     ./pywal.nix
     ./hyprpaper.nix
@@ -24,7 +25,6 @@ in
   home.sessionVariables = {
     PATH = "${config.home.homeDirectory}/.local/bin:${pkgs.stdenv.cc.cc}/bin:${pkgs.coreutils}/bin:${pkgs.git}/bin:${pkgs.gcc}/bin:${pkgs.bash}/bin";
   };
-
 
   # Exempel fontconfig (enkel, utan att skriva till xdg.configFile)
   home.file."${config.home.homeDirectory}/.config/fontconfig/conf.d/10-hm-fonts.conf".text = ''

@@ -1,9 +1,9 @@
-----------------------------------------
 #./modules/home/hyprland.nix
-----------------------------------------
 # Plats: modules/home/hyprland.nix
-{ config, pkgs, hostName, ... }: # <--- Korrekt
-
+{ config, pkgs, specialArgs, ... }: # <--- Ändrad signatur: tar emot specialArgs
+let
+  hostName = specialArgs.hostName; # Hämta hostName från specialArgs
+in
 {
   # Se till att Hyprland är aktiverat i Home Manager också,
   # men utan att definiera några inställningar här.
@@ -21,7 +21,7 @@
     source = /etc/hypr/hyprland-base.conf
 
     # Inkludera den host-specifika konfigurationen
-    source = /etc/hypr/hyprland-${hostConfig.networking.hostName}.conf
+    source = /etc/hypr/hyprland-${hostName}.conf # <--- Använder hostName direkt
 
     # Eventuella ytterligare användarspecifika inställningar kan läggas till här
     # (men det är oftast bättre att hålla dem i de systemgenererade filerna för enkelhetens skull)
