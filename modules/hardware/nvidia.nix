@@ -9,4 +9,3 @@
     unstable.blender
   ];
 }
-}
