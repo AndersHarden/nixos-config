@@ -13,6 +13,7 @@
     brightnessctl
     hyprpaper # Installeras på systemnivå för att 'exec-once' ska hitta den
     hyprpicker
+    hypridle
     hyprcursor
     pywal16
     nwg-look

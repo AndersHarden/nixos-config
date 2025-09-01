@@ -1,11 +1,14 @@
+----------------------------------------
+#./flake.nix
+----------------------------------------
 {
   description = "Min familj av NixOS-maskiner";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-25.05";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github.com/nixos/nixpkgs/release-25.05";
+    nixpkgs-unstable.url = "github.com/nixos/nixpkgs/nixos-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager";
+      url = "github.com/nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
@@ -15,7 +18,7 @@
       # Intel laptop
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
         modules = [
           ./hosts/laptop-intel
           ./modules/common/base.nix
@@ -31,7 +34,7 @@
       # Nvidia laptop
       laptop-nvidia = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
         modules = [
           ./hosts/laptop-nvidia
           ./modules/common/base.nix
@@ -47,7 +50,7 @@
       # Mediaspelare
       mediaplayer = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
         modules = [
           ./hosts/mediaplayer
           ./modules/common/base.nix
@@ -63,7 +66,7 @@
       # Workstation
       workstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs config; }; # <-- Lägg till 'config' här
         modules = [
           ./hosts/workstation
           ./modules/common/base.nix

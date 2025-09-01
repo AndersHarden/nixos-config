@@ -1,6 +1,13 @@
+----------------------------------------
+#./modules/home/anders.nix
+----------------------------------------
 # Plats: ~/nixos-config/modules/home/anders.nix
-{ config, pkgs, ... }:
+{ config, pkgs, specialArgs, ... }: # <--- Korrekt: tar emot specialArgs
 
+let
+  # Extrahera hostConfig från specialArgs
+  hostConfig = specialArgs.config; # <--- Korrekt: extraherar config
+in
 {
   # Enable home manager programs
   programs.home-manager.enable = true;
@@ -9,7 +16,8 @@
   # Kitty
   imports = [
     ./waybar.nix
-    ./hyprland.nix
+    # Skicka det extraherade hostConfig till hyprland.nix
+    (./hyprland.nix { inherit config pkgs hostConfig; })
     ./kitty.nix
     ./pywal.nix
     ./hyprpaper.nix

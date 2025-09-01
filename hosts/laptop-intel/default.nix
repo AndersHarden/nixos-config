@@ -9,6 +9,7 @@
     ../../modules/profiles/services.nix
     ../../modules/services/ollama.nix
     ../../modules/services/open-webui.nix
+    ./hyprland.nix
   ];
  
   # Unika inställningar för denna dator
