@@ -1,14 +1,11 @@
-#./flake.nix
+# ./flake.nix
 {
   description = "Min familj av NixOS-maskiner";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    home-manager.url = "github:nix-community/home-manager/release-25.05"; # Korrigera inputs-syntax
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: {
@@ -16,7 +13,7 @@
       # Intel laptop
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
-        specialArgs = { inherit inputs; }; # <--- Behåll denna
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/laptop-intel
           ./modules/common/base.nix
@@ -24,10 +21,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            # KORRIGERING HÄR:
-            # extraSpecialArgs tar emot config från den omgivande NixOS-modulen
-            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
-              hostName = config.networking.hostName;
+            home-manager.extraSpecialArgs = {
+              hostName = "laptop-intel"; # Direkt värde
               inherit inputs;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
@@ -46,8 +41,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
-              hostName = config.networking.hostName;
+            home-manager.extraSpecialArgs = {
+              hostName = "laptop-nvidia"; # Direkt värde
               inherit inputs;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
@@ -66,8 +61,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
-              hostName = config.networking.hostName;
+            home-manager.extraSpecialArgs = {
+              hostName = "mediaplayer"; # Direkt värde
               inherit inputs;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
@@ -86,8 +81,8 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = { config, ... }: { # <--- Lägg till 'config' här
-              hostName = config.networking.hostName;
+            home-manager.extraSpecialArgs = {
+              hostName = "workstation"; # Direkt värde
               inherit inputs;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
