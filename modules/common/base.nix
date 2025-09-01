@@ -7,6 +7,9 @@
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "sv_SE.UTF-8";
 
+  # Använd den senaste kärnan för bättre hårdvarustöd
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   # ===============================================================
   # == LÄGG TILL DETTA BLOCK FÖR NÄTVERKSHANTERING               ==
   # ===============================================================
