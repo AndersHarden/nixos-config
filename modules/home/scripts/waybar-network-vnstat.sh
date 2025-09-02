@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Hitta första aktiva interface
-IFACE=$(ip -o -4 addr show up | awk '!/ lo / {print $2; exit}')
+IFACE=$(ip -o -4 addr show up | awk '!/ lo / && $2 != "tailscale0" {print $2; exit}')
 [ -z "$IFACE" ] && IFACE="wlan0"
 
 # IP-adress
