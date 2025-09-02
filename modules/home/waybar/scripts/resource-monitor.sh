@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # --- Ikoner (kräver Nerd Fonts) ---
-ICON_CPU=""
-ICON_MEM="\uefc5 "
-ICON_GPU="﬙"
-ICON_TEMP=""
-ICON_FAN=""
-ICON_DISK=""
+ICON_CPU=" "
+ICON_MEM=" "
+ICON_GPU="󰢮 "
+ICON_TEMP=" "
+ICON_FAN="󰈐 "
+ICON_DISK=" "
 
 # --- Funktioner för att hämta data ---
 
