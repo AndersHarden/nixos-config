@@ -8,7 +8,8 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
-    ../../modules/profiles/server.nix     # För SSH
+    ../../modules/profiles/server.nix
+    ./hyprland.nix
   ];
 
   # Unika inställningar
