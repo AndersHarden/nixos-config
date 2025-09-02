@@ -23,7 +23,7 @@ if [ "$IS_WIFI" -eq 1 ]; then
 fi
 
 ICON=""
-[ -n "$IPADDR" ] && [ "$IPADDR" != "N/A" ] && ICON=$([ "$IS_WIFI" -eq 1 ] && echo "" || echo "")
+[ -n "$IPADDR" ] && [ "$IPADDR" != "N/A" ] && ICON=$([ "$IS_WIFI" -eq 1 ] && echo " " || echo " ")
 
 # vnstat data
 TODAY="N/A"
