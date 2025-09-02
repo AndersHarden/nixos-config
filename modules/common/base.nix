@@ -1,11 +1,21 @@
-# Plats: modules/common/base.nix
+# ./modules/common/base.nix
 { pkgs, ... }:
 {
-  # Grundläggande systeminställningar
+  # Existing settings...
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "sv_SE.UTF-8";
+
+  # Add binary cache configuration
+  nix.settings = {
+    substituters = [
+      "https://cache.nixos.org/"
+    ];
+    trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
+  };
 
   # Använd den senaste kärnan för bättre hårdvarustöd
   boot.kernelPackages = pkgs.linuxPackages_latest;

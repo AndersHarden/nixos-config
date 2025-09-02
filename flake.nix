@@ -17,16 +17,24 @@
           ./hosts/laptop-intel
           ./modules/common/base.nix
           home-manager.nixosModules.home-manager
-          {
+          ({ config, pkgs, ... }: {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
               hostName = "laptop-intel";
               inherit inputs;
-              systemEtc = config.environment.etc; # Move systemEtc here
+              systemEtc = config.environment.etc;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
-          }
+            # Add overlay to disable tailscale tests
+            nixpkgs.overlays = [
+              (final: prev: {
+                tailscale = prev.tailscale.overrideAttrs (old: {
+                  doCheck = false; # Disable tests to avoid /proc/net/tcp errors
+                });
+              })
+            ];
+          })
         ];
       };
       laptop-nvidia = nixpkgs.lib.nixosSystem {
@@ -36,7 +44,7 @@
           ./hosts/laptop-nvidia
           ./modules/common/base.nix
           home-manager.nixosModules.home-manager
-          {
+          ({ config, pkgs, ... }: {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
@@ -45,7 +53,14 @@
               systemEtc = config.environment.etc;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
-          }
+            nixpkgs.overlays = [
+              (final: prev: {
+                tailscale = prev.tailscale.overrideAttrs (old: {
+                  doCheck = false;
+                });
+              })
+            ];
+          })
         ];
       };
       mediaplayer = nixpkgs.lib.nixosSystem {
@@ -55,7 +70,7 @@
           ./hosts/mediaplayer
           ./modules/common/base.nix
           home-manager.nixosModules.home-manager
-          {
+          ({ config, pkgs, ... }: {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
@@ -64,7 +79,14 @@
               systemEtc = config.environment.etc;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
-          }
+            nixpkgs.overlays = [
+              (final: prev: {
+                tailscale = prev.tailscale.overrideAttrs (old: {
+                  doCheck = false;
+                });
+              })
+            ];
+          })
         ];
       };
       workstation = nixpkgs.lib.nixosSystem {
@@ -74,7 +96,7 @@
           ./hosts/workstation
           ./modules/common/base.nix
           home-manager.nixosModules.home-manager
-          {
+          ({ config, pkgs, ... }: {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.extraSpecialArgs = {
@@ -83,7 +105,14 @@
               systemEtc = config.environment.etc;
             };
             home-manager.users.anders = import ./modules/home/anders.nix;
-          }
+            nixpkgs.overlays = [
+              (final: prev: {
+                tailscale = prev.tailscale.overrideAttrs (old: {
+                  doCheck = false;
+                });
+              })
+            ];
+          })
         ];
       };
     };
