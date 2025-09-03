@@ -27,6 +27,7 @@
     (unstable.blender.override {
         cudaSupport = true;
     })
+  ];
     
   # Overlay för instabila paket
   nixpkgs.overlays = [
