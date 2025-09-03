@@ -6,6 +6,6 @@
   hardware.nvidia.open = false;
   # nvidia specific packages
   environment.systemPackages = with pkgs; [ 
-    unstable.blender
+    cudaPackages.cudatoolkit
   ];
 }

@@ -8,6 +8,7 @@ in
 {
   # 1. Skapa ett skript som heter "ladda-fullt"
   environment.systemPackages = with pkgs; [
+    cudaPackages.cudatoolkit
     (writeShellScriptBin "ladda-fullt" ''
       #!${pkgs.runtimeShell}
       echo "Instruerar TLP att ladda batteriet till 100% för denna session..."
