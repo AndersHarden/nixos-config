@@ -18,7 +18,10 @@
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
   };
-
+  # tialored blender for intel
+  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+    unstable.blender-hip
+    
   # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {

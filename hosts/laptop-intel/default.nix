@@ -25,6 +25,10 @@
     };
   };
 
+  # tialored blender for intel
+  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+    unstable.blender
+    
   # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {

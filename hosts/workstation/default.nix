@@ -22,6 +22,12 @@
     efi.canTouchEfiVariables = true;
   };
 
+  # tialored blender for vnidia wirkstation
+  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+    (unstable.blender.override {
+        cudaSupport = true;
+    })
+    
   # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
