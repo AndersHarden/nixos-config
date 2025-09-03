@@ -2,7 +2,7 @@
 {
   environment.systemPackages = with pkgs; [
     plexamp
-    plex-desktop
+    plex-media-player
     jellyfin-media-player
     mpv
     vlc
