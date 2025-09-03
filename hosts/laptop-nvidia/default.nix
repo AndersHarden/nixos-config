@@ -4,6 +4,7 @@
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
     ../../modules/hardware/intel.nix
+    ../../modules/hardware/laptop.nix
     ../../modules/common/base.nix
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
