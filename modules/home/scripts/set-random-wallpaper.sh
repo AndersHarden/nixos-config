@@ -41,16 +41,16 @@ if command -v convert &>/dev/null; then
     top_crop=$(identify -format "%[fx:h*0.05]" "$random_image" | cut -d. -f1)
     top_crop=$(( top_crop > 0 ? top_crop : 1 ))
 
-    # Hämta snittfärg för övre 5%
-    read r g b < <(convert "$random_image" -crop "100%x$top_crop+0+0" \
-        -resize 1x1 -format "%[fx:int(255*r)] %[fx:int(255*g)] %[fx:int(255*b)]" info:)
+    if command -v magick &>/dev/null; then
+        luminance=$(convert "$random_image" -crop "100%x$top_crop+0+0" \
+            -colorspace Gray -scale 1x1\! -format "%[fx:int(255*mean)]" info:)
+    else
+        luminance=$(convert "$random_image" -crop "100%x$top_crop+0+0" \
+            -colorspace Gray -scale 1x1\! -format "%[fx:int(255*mean)]" info:)
+    fi
 
-    # WCAG brightness-formel
-    brightness=$(echo "0.299*$r + 0.587*$g + 0.114*$b" | bc)
-
-    echo "RGB: ($r,$g,$b) → brightness $brightness"
-
-    if (( ${brightness%.*} > 150 )); then
+    echo "Genomsnittlig luminans övre 5%: $luminance"
+    if (( luminance > 100 )); then
         text_color="#000000"
     else
         text_color="#ffffff"
