@@ -12,11 +12,9 @@
     ./hyprland.nix
   ];
 
-  # Unika inställningar
   networking.hostName = "laptop-nvidia";
   console.keyMap = "sv-latin1";
 
-  # LUKS och Bootloader
   boot = {
     loader = {
       systemd-boot.enable = true;
@@ -24,12 +22,10 @@
     };
   };
 
-  # tialored blender for nvidia laptop
-  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+  environment.systemPackages = with pkgs; [
     unstable.blender
   ];
-  
-  # Overlay för instabila paket
+
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {

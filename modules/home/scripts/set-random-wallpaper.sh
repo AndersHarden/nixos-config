@@ -50,7 +50,7 @@ if command -v convert &>/dev/null; then
 
     echo "RGB: ($r,$g,$b) → brightness $brightness"
 
-    if (( ${brightness%.*} > 150 )); then
+    if (( ${brightness%.*} > 70 )); then
         text_color="#000000"
     else
         text_color="#ffffff"
