@@ -14,7 +14,7 @@
     f3d
 
     # raster
-    gimp-with-plugins # Notera: gimp3-with-plugins kan ha bytt namn till gimp-with-plugins
+    gimp-with-plugins
     krita
 
     # Vektor
