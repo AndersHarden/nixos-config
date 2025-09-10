@@ -20,5 +20,8 @@
     # Vektor
     inkscape-with-extensions
     inkscape-extensions.inkstitch
+
+    # GIS
+    qgis
   ];
 }
