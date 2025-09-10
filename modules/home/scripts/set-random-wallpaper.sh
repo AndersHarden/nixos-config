@@ -50,7 +50,7 @@ if command -v convert &>/dev/null; then
     fi
 
     echo "Genomsnittlig luminans övre 5%: $luminance"
-    if (( luminance > 100 )); then
+    if (( luminance > 50 )); then
         text_color="#000000"
     else
         text_color="#ffffff"
