@@ -6,7 +6,7 @@
     "layer": "top",
     "modules-left": ["hyprland/workspaces"],
     "modules-center": ["clock", "idle_inhibitor"],
-    "modules-right": ["custom/resource-monitor", "bluetooth", "custom/network-vnstat", "tray", "pulseaudio", "custom/battery" ],
+    "modules-right": ["custom/set-random-wallpaper", "custom/resource-monitor", "bluetooth", "custom/network-vnstat", "tray", "pulseaudio", "custom/battery" ],
 
 
     "idle_inhibitor": {
@@ -15,6 +15,14 @@
         "activated": "󰅶",
         "deactivated": "󰛊"
         }
+    },
+
+
+    "custom/set-random-wallpaper": {
+        "format": " ",
+        "interval": 0,
+        "tooltip": "Set random wallpaper",
+        "on-click": "~/nixos-config/modules/home/scripts/set-random-wallpaper.sh"
     },
 
     "clock": {
