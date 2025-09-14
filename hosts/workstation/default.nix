@@ -9,6 +9,7 @@
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
     ../../modules/profiles/server.nix
+    ../../modules/desktop/quickemu.nix
     ./hyprland.nix
   ];
 
