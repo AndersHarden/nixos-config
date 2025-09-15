@@ -1,8 +1,9 @@
 { config, pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
-    slack
-    discord
+    quickemu
+    quickgui
+    qemu
   ];
 
 }
