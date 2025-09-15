@@ -6,6 +6,6 @@
   hardware.nvidia.open = false;
   # nvidia specific packages
   environment.systemPackages = with pkgs; [ 
-    cudaPackages.cudatoolkitg
+    cudaPackages.cudatoolkit
   ];
 }
