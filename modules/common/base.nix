@@ -76,5 +76,6 @@
     gnome-disk-utility
     gnome.gvfs
     udisks2
+    ffmpeg
   ];
 }
