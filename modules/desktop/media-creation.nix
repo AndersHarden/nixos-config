@@ -23,5 +23,8 @@
 
     # GIS
     qgis
+
+    # Ljud
+    openai-whisper
   ];
 }
