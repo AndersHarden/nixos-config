@@ -1,4 +1,3 @@
-# ./flake.nix
 {
   description = "Min familj av NixOS-maskiner";
 
@@ -6,9 +5,13 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager.url = "github:nix-community/home-manager/release-25.05";
+    m4b-tool = {
+      url = "github:sandreas/m4b-tool";
+      inputs.nixpkgs.follows = "nixpkgs";  # Använd samma nixpkgs (25.05) för att undvika konflikter
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, m4b-tool, ... }@inputs: {
     nixosConfigurations = {
       laptop-intel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -25,7 +28,13 @@
               inherit inputs;
               systemEtc = config.environment.etc;
             };
-            home-manager.users.anders = import ./modules/home/anders.nix;
+            home-manager.users.anders = {
+              imports = [ ./modules/home/anders.nix ];
+              home.packages = [
+                m4b-tool.packages.${pkgs.system}.default  # Standard m4b-tool
+                pkgs.ffmpeg  # Lägg till FFmpeg för m4b-tool
+              ];
+            };
             # Add overlay to disable tailscale tests
             nixpkgs.overlays = [
               (final: prev: {
@@ -52,7 +61,13 @@
               inherit inputs;
               systemEtc = config.environment.etc;
             };
-            home-manager.users.anders = import ./modules/home/anders.nix;
+            home-manager.users.anders = {
+              imports = [ ./modules/home/anders.nix ];
+              home.packages = [
+                m4b-tool.packages.${pkgs.system}.default  # Standard m4b-tool
+                pkgs.ffmpeg  # Lägg till FFmpeg för m4b-tool
+              ];
+            };
             nixpkgs.overlays = [
               (final: prev: {
                 tailscale = prev.tailscale.overrideAttrs (old: {
@@ -78,7 +93,13 @@
               inherit inputs;
               systemEtc = config.environment.etc;
             };
-            home-manager.users.anders = import ./modules/home/anders.nix;
+            home-manager.users.anders = {
+              imports = [ ./modules/home/anders.nix ];
+              home.packages = [
+                m4b-tool.packages.${pkgs.system}.default  # Standard m4b-tool
+                pkgs.ffmpeg  # Lägg till FFmpeg för m4b-tool
+              ];
+            };
             nixpkgs.overlays = [
               (final: prev: {
                 tailscale = prev.tailscale.overrideAttrs (old: {
@@ -104,7 +125,13 @@
               inherit inputs;
               systemEtc = config.environment.etc;
             };
-            home-manager.users.anders = import ./modules/home/anders.nix;
+            home-manager.users.anders = {
+              imports = [ ./modules/home/anders.nix ];
+              home.packages = [
+                m4b-tool.packages.${pkgs.system}.default  # Standard m4b-tool
+                pkgs.ffmpeg  # Lägg till FFmpeg för m4b-tool
+              ];
+            };
             nixpkgs.overlays = [
               (final: prev: {
                 tailscale = prev.tailscale.overrideAttrs (old: {
