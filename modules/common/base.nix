@@ -77,5 +77,6 @@
     gnome.gvfs
     udisks2
     ffmpeg
+    mp4v2
   ];
 }
