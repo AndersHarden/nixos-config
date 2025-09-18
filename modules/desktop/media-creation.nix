@@ -26,5 +26,6 @@
 
     # Ljud
     openai-whisper
+    atomicparsley
   ];
 }
