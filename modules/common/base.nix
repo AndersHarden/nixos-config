@@ -78,5 +78,6 @@
     udisks2
     ffmpeg
     mp4v2
+    zlib
   ];
 }
