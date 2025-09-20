@@ -9,6 +9,6 @@
     cudaPackages.cudatoolkit
     cudaPackages.cudnn
     cudaPackages.libcublas
-    python312Packages.pytorchWithCuda
+    python312Packages.pytorch-bin
   ];
 }
