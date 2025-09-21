@@ -27,5 +27,8 @@
     # Ljud
     openai-whisper
     atomicparsley
+
+    # AI
+    lmstudio
   ];
 }
