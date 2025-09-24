@@ -11,6 +11,7 @@
     ../../modules/services/ollama.nix
     ../../modules/services/open-webui.nix
     ./hyprland.nix
+    ../../modules/desktop/wine.nix
   ];
  
   # Unika inställningar för denna dator
