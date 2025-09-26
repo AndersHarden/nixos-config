@@ -33,7 +33,7 @@
     Unit = { Description = "Run set-random-wallpaper every 5 minutes"; };
     Timer = {
       OnBootSec = "30s";
-      OnUnitActiveSec = "5m";
+      OnUnitActiveSec = "15m";
       Unit = "set-random-wallpaper.service";
     };
     Install = { WantedBy = [ "timers.target" ]; };

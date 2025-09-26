@@ -50,7 +50,7 @@ if command -v convert &>/dev/null; then
     fi
 
     echo "Genomsnittlig luminans övre 5%: $luminance"
-    if (( luminance > 50 )); then
+    if (( luminance > 150 )); then
         text_color="#000000"
     else
         text_color="#ffffff"
@@ -83,6 +83,7 @@ tooltip {
 }
 EOF
 
+pywalfox update
 
 # Signalera Waybar att läsa om CSS
 pkill -SIGUSR2 waybar 2>/dev/null || true
