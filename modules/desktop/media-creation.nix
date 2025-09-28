@@ -30,5 +30,8 @@
 
     # AI
     lmstudio
+
+    # pdf
+    papers
   ];
 }
