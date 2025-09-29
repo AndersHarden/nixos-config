@@ -10,4 +10,7 @@
   home.file.".config/default-wallpaper.jpg" = {
     source = ./assets/default.jpg;
   };
+  home.file.".config/dunst/dunstrc" = {
+    source = ./assets/dunstrc;
+  };
 }
