@@ -10,5 +10,6 @@
     cudaPackages.cudnn
     cudaPackages.libcublas
     python312Packages.pytorch-bin
+    gcc-unwrapped
   ];
 }
