@@ -79,5 +79,6 @@
     ffmpeg
     mp4v2
     zlib
+    stdenv.cc.cc.lib
   ];
 }
