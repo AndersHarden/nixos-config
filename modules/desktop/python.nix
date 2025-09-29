@@ -8,6 +8,7 @@
     librosa
     pydub
     openai-whisper
+    torch
   ]);
 
 }
