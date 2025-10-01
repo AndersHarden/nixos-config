@@ -2,7 +2,13 @@
 {
   environment.systemPackages = with pkgs; [
     python313
-    python313Packages.pip
-  ];
+  ] ++ (with python313Packages; [
+    pip
+    numpy
+    librosa
+    pydub
+    openai-whisper
+    torch
+  ]);
 
 }

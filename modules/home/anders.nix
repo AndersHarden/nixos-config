@@ -21,9 +21,16 @@ in
     ./scripts.nix
   ];
 
+  home.packages = with pkgs; [
+      gcc  # Inkluderar libstdc++.so.6
+      python3  # Säkerställer att Python 3 är tillgängligt
+      python3Packages.numpy  # Lägg till numpy via Nix (valfritt, se nedan)
+  ];
+
   # PATH och session-variabler
   home.sessionVariables = {
     PATH = "${config.home.homeDirectory}/.local/bin:${pkgs.stdenv.cc.cc}/bin:${pkgs.coreutils}/bin:${pkgs.git}/bin:${pkgs.gcc}/bin:${pkgs.bash}/bin";
+    LD_LIBRARY_PATH = "${pkgs.gcc.cc.lib}/lib";
   };
 
   # Exempel fontconfig (enkel, utan att skriva till xdg.configFile)
