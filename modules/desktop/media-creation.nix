@@ -27,6 +27,7 @@
     # Ljud
     openai-whisper
     atomicparsley
+    whisper-ctranslate2
 
     # AI
     lmstudio

@@ -31,8 +31,6 @@
     unstable.blender
     calibre
     libgourou
-    python313Packages.faster-whisper
-    ctranslate2
   ];
   
   # Overlay för instabila paket

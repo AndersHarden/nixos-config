@@ -9,6 +9,7 @@
     pydub
     openai-whisper
     torch
+    faster-whisper
   ]);
 
 }
