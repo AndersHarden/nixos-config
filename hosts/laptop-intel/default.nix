@@ -32,6 +32,8 @@
     calibre
     libgourou
   ];
+
+  services.flatpak.enable = true;
   
   # Overlay för instabila paket
   nixpkgs.overlays = [
