@@ -31,6 +31,7 @@
     unstable.blender
     calibre
     libgourou
+    android-studio
   ];
 
   services.flatpak.enable = true;
