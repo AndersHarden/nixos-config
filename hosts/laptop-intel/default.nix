@@ -34,6 +34,10 @@
     android-studio
   ];
 
+  # ADB
+  programs.adb.enable = true;
+
+  # Flatpak
   services.flatpak.enable = true;
   
   # Overlay för instabila paket
