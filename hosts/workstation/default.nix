@@ -16,6 +16,8 @@
   # Unika inställningar
   networking.hostName = "workstation";
   console.keyMap = "sv-latin1";
+  networking.firewall.allowedTCPPorts = [ 8080 ];
+  networking.firewall.enable = false;
 
   # Bootloader (utan LUKS, vilket är vanligt för en stationär dator)
   boot.loader = {

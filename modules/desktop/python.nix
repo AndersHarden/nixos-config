@@ -12,6 +12,7 @@
     faster-whisper
     types-beautifulsoup4
     mitmproxy
+    mutagen
   ]);
 
 }
