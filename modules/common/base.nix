@@ -52,7 +52,7 @@
   users.users.anders = {
     isNormalUser = true;
     description = "Anders Hardenborg";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "kvm"];
   };
 
   # Grundläggande paket som alla behöver

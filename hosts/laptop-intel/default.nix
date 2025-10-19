@@ -8,11 +8,12 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
-    ../../modules/services/ollama.nix
-    ../../modules/services/open-webui.nix
     ./hyprland.nix
     ../../modules/desktop/wine.nix
   ];
+
+  # Ensure no ollama-related configuration remains
+  # (Remove or comment out any ollama.* or services.ollama.* options if present)
  
   # Unika inställningar för denna dator
   networking.hostName = "laptop-intel";
@@ -30,9 +31,12 @@
   environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
     unstable.blender
     calibre
-    libgourou
   ];
 
+  # ADB
+  programs.adb.enable = true;
+
+  # Flatpak
   services.flatpak.enable = true;
   
   # Overlay för instabila paket
