@@ -26,6 +26,8 @@
     unstable.blender
   ];
 
+  services.flatpak.enable = true;
+  
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {
