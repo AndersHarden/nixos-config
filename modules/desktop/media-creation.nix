@@ -31,6 +31,10 @@
 
     # AI
     lmstudio
+    opencode
+
+    # Development
+    unstable.nodejs_24
 
     # pdf
     papers
