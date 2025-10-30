@@ -31,7 +31,7 @@
 
     # AI
     lmstudio
-    opencode
+    unstable.opencode
 
     # Development
     unstable.nodejs_24
