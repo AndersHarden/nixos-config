@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 {
   environment.systemPackages = with pkgs; [
+    uv # Extremely fast Python package installer and resolver, written in Rust
     python313
   ] ++ (with python313Packages; [
     pip
