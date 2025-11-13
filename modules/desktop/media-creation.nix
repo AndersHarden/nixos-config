@@ -36,6 +36,9 @@
     # Development
     unstable.nodejs_24
 
+    # Projektledning
+    anytype
+
     # pdf
     papers
   ];
