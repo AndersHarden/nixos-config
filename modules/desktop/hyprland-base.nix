@@ -42,7 +42,7 @@ let
     "}"
     ""
     "gestures {"
-    "  workspace_swipe = true"
+    "  gesture = 3, horizontal, workspace"
     "}"
     ""
     "device {"
