@@ -7,7 +7,7 @@
   # Installera system-paket som behövs för en Hyprland-miljö
   # Notera: hyprpaper och andra användarprogram är borttagna härifrån
   environment.systemPackages = with pkgs; [
-    rofi-wayland
+    rofi
     dunst
     pavucontrol
     brightnessctl
