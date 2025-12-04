@@ -5,7 +5,7 @@
     # Detta är alla paket som tidigare låg i hyprland.nix
     kitty
     imagemagick
-    rofi-wayland
+    rofi
     dunst
     jq
     pavucontrol
