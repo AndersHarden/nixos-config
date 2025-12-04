@@ -2,12 +2,12 @@
   description = "Min familj av NixOS-maskiner";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
     m4b-tool = {
       url = "github:sandreas/m4b-tool";
-      inputs.nixpkgs.follows = "nixpkgs";  # Använd samma nixpkgs (25.05) för att undvika konflikter
+      inputs.nixpkgs.follows = "nixpkgs";  # Använd samma nixpkgs (25.11) för att undvika konflikter
     };
   };
 
