@@ -32,5 +32,6 @@
     dart-sass
     pywalfox-native
     ddcutil
+    rwedid
   ];
 }
