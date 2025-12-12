@@ -31,5 +31,6 @@
     gtk-layer-shell
     dart-sass
     pywalfox-native
+    ddcutil
   ];
 }
