@@ -24,7 +24,14 @@
 
   environment.systemPackages = with pkgs; [
     unstable.blender
+    virt-manager
   ];
+
+  programs.virt-manager.enable = true;
+
+  users.groups.libvirtd.members = ["anders"];
+  virtualisation.libvirtd.enable = true;
+  virtualisation.spiceUSBRedirection.enable = true;
 
   services.flatpak.enable = true;
   
