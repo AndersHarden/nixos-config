@@ -27,11 +27,11 @@
     virt-manager
   ];
 
-  programs.virt-manager.enable = true;
-
-  users.groups.libvirtd.members = ["anders"];
-  virtualisation.libvirtd.enable = true;
-  virtualisation.spiceUSBRedirection.enable = true;
+  nix.settings = {
+    download-buffer-size = 268435456;
+    max-jobs = "auto";
+    cores = 0;
+  };
 
   services.flatpak.enable = true;
   

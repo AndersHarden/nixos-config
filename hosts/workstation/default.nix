@@ -19,6 +19,12 @@
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.enable = false;
 
+  nix.settings = {
+    download-buffer-size = 536870912; # 512 MB
+    max-jobs = "auto";
+    cores = 0;
+  };
+
   # Bootloader (utan LUKS, vilket är vanligt för en stationär dator)
   boot.loader = {
     systemd-boot.enable = true;

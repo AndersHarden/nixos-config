@@ -11,6 +11,12 @@
     variant = "";
   };
 
+  # VM
+  programs.virt-manager.enable = true;
+  users.groups.libvirtd.members = ["anders"];
+  virtualisation.libvirtd.enable = true;
+  virtualisation.spiceUSBRedirection.enable = true;
+
   # Konfigurera Display Manager (SDDM) med Wayland-stöd
   services.displayManager.sddm = {
     enable = true;

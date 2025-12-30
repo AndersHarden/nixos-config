@@ -19,6 +19,12 @@
   networking.hostName = "laptop-intel";
   console.keyMap = "sv-latin1";
 
+  nix.settings = {
+    download-buffer-size = 536870912; # 512 MB
+    max-jobs = "auto";
+    cores = 0;
+  };
+
   # LUKS och Bootloader
   boot = {
     loader = {
