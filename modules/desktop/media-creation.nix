@@ -37,7 +37,7 @@
     unstable.nodejs_24
 
     # Projektledning
-    unstable.anytype
+    # unstable.anytype
 
     # pdf
     papers
