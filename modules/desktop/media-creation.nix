@@ -41,5 +41,8 @@
 
     # pdf
     papers
+
+    # markdown
+    typora
   ];
 }
