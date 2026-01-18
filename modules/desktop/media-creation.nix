@@ -43,6 +43,6 @@
     papers
 
     # markdown
-    typora
+    glow
   ];
 }
