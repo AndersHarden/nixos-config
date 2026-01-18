@@ -6,6 +6,8 @@
     ../desktop/environment.nix
     ../desktop/plymouth.nix
 
+    # Hyprland system-konfiguration (aktiverar Hyprland)
+    ../desktop/hyprland-base.nix
 
     # Dina befintliga moduler för programvara
     ../desktop/hyprland.nix

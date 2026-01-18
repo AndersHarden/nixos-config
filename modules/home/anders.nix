@@ -11,14 +11,12 @@ in
   # Kitty
   imports = [
     ./waybar.nix
-    # Nu importerar vi hyprland.nix som en vanlig modul.
-    # hostName är tillgängligt i hyprland.nix via dess egen specialArgs.
-    ./hyprland.nix
     ./kitty.nix
     ./pywal.nix
-    ./hyprpaper.nix
     ./config-files.nix
     ./scripts.nix
+    ./hyprland.nix
+    ./hyprpaper.nix
   ];
 
   home.packages = with pkgs; [

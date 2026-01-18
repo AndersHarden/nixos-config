@@ -18,9 +18,11 @@
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
   };
-  # tialored blender for intel
+  # tailored blender for AMD
   environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
-    unstable.blender-hip
+    (unstable.blender.override {
+      rocmSupport = true;
+    })
   ];
   
   # Overlay för instabila paket
@@ -33,5 +35,5 @@
     })
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }

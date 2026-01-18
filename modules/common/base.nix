@@ -1,11 +1,19 @@
 # ./modules/common/base.nix
 { pkgs, ... }:
 {
+  imports = [
+    ./overlays.nix
+  ];
+
+
   # Existing settings...
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "sv_SE.UTF-8";
+
+  # Add paths to link for home-manager compatibility
+  environment.pathsToLink = [ "/share/applications" "/share/xdg-desktop-portal" ];
 
   # Add binary cache configuration
   nix.settings = {
@@ -52,7 +60,7 @@
   users.users.anders = {
     isNormalUser = true;
     description = "Anders Hardenborg";
-    extraGroups = [ "networkmanager" "wheel" "kvm"];
+    extraGroups = [ "wheel" "kvm"];
   };
 
   # Grundläggande paket som alla behöver
@@ -72,7 +80,6 @@
     gnome-decoder
     ffmpegthumbnailer
     glance
-    nautilus
     gnome-disk-utility
     gnome.gvfs
     udisks2

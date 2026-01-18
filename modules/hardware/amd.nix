@@ -2,9 +2,8 @@
 {
   # Enable AMD GPU support
   services.xserver.videoDrivers = [ "amdgpu" ];
-  hardware.opengl.driSupport = true;
   hardware.graphics.enable = true;
-  hardware.opengl.driSupport32Bit = true;
+  hardware.graphics.enable32Bit = true;
   # Enable AMD ROCm support
   systemd.tmpfiles.rules = 
   let
@@ -22,6 +21,8 @@
 
   # AMD specific packages
   environment.systemPackages = with pkgs; [ 
-    unstable.blender-hip
+    (unstable.blender.override {
+      rocmSupport = true;
+    })
   ];
 }
