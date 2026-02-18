@@ -1,4 +1,5 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
+
 {
   imports = [
     ./hardware-configuration.nix
@@ -9,6 +10,8 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
+    ../../modules/profiles/server.nix
+    ../../modules/desktop/quickemu.nix
     ./hyprland.nix
   ];
 
@@ -20,11 +23,27 @@
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
+    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
   environment.systemPackages = with pkgs; [
     unstable.blender
     virt-manager
+    (pkgs.stdenv.mkDerivation {
+      name = "opencode";
+      src = pkgs.fetchurl {
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.2.6/opencode-linux-x64.tar.gz";
+        sha256 = "1299d49d1c9e8b07217d92cea14050650c0b5a81c2ac380d6ec0d1d26abbe61a";
+      };
+      unpackPhase = "true";
+      installPhase = ''
+        mkdir -p $out/bin
+        tar -xzf $src
+        mv opencode $out/bin/
+        chmod +x $out/bin/opencode
+      '';
+      meta.mainProgram = "opencode";
+    })
   ];
 
   nix.settings = {
@@ -44,5 +63,5 @@
     })
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }
