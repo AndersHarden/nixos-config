@@ -73,27 +73,6 @@
           })
         ];
       };
-      mediaplayer = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; pkgsUnstable = pkgsUnstable; };
-        modules = [
-          ./hosts/mediaplayer
-          ./modules/common/base.nix
-          home-manager.nixosModules.home-manager
-          ({ config, pkgs, ... }: {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = {
-              hostName = "mediaplayer";
-              inherit inputs;
-              systemEtc = config.environment.etc;
-            };
-            home-manager.users.anders = {
-              imports = [ ./modules/home/anders.nix ];
-            };
-          })
-        ];
-      };
       workstation = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
