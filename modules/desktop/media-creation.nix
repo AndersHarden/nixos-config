@@ -1,10 +1,9 @@
 # Plats: modules/desktop/media-creation.nix
 
-# Signaturen tar INTE emot 'inputs'
 { config, pkgs, ... }:
 
 {
-  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+  environment.systemPackages = with pkgs; [
     # 3D
 #    unstable.blender
     freecad
@@ -31,7 +30,7 @@
 
     # AI
     lmstudio
-    unstable.opencode
+    # opencode is handled in workstation host directly
 
     # Development
     unstable.nodejs_24

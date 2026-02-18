@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
 
 {
   imports = [
@@ -19,22 +19,34 @@
   networking.firewall.allowedTCPPorts = [ 8080 ];
   networking.firewall.enable = false;
 
-  nix.settings = {
-    download-buffer-size = 536870912; # 512 MB
-    max-jobs = "auto";
-    cores = 0;
-  };
-
   # Bootloader (utan LUKS, vilket är vanligt för en stationär dator)
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
   };
 
-  # tialored blender for vnidia wirkstation
-  environment.systemPackages = with pkgs; [ # 'with pkgs;' gör att vi kan skriva 'unstable' istället för 'pkgs.unstable'
+  # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
+  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
+
+  # Tailored blender for nvidia workstation
+  environment.systemPackages = with pkgs; [
     (unstable.blender.override {
         cudaSupport = true;
+    })
+    (pkgs.stdenv.mkDerivation {
+      name = "opencode";
+      src = pkgs.fetchurl {
+        url = "https://github.com/anomalyco/opencode/releases/download/v1.2.6/opencode-linux-x64.tar.gz";
+        sha256 = "1299d49d1c9e8b07217d92cea14050650c0b5a81c2ac380d6ec0d1d26abbe61a";
+      };
+      unpackPhase = "true";
+      installPhase = ''
+        mkdir -p $out/bin
+        tar -xzf $src
+        mv opencode $out/bin/
+        chmod +x $out/bin/opencode
+      '';
+      meta.mainProgram = "opencode";
     })
   ];
     
