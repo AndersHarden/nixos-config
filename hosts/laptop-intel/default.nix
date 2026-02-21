@@ -34,7 +34,7 @@
     unstable.blender
     calibre
     (pkgs.stdenv.mkDerivation {
-      name = "opencode";
+      name = "opencode-v1.2.6";
       src = pkgs.fetchurl {
         url = "https://github.com/anomalyco/opencode/releases/download/v1.2.6/opencode-linux-x64.tar.gz";
         sha256 = "1299d49d1c9e8b07217d92cea14050650c0b5a81c2ac380d6ec0d1d26abbe61a";
