@@ -9,8 +9,6 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
-    ../../modules/profiles/server.nix
-    ../../modules/desktop/quickemu.nix
     ./hyprland.nix
     ../../modules/desktop/wine.nix
   ];
@@ -31,10 +29,7 @@
     };
   };
 
-<<<<<<< HEAD
   # tailored blender for intel + opencode
-=======
->>>>>>> e7752c748f25015184cae5a1c7c957acba40a765
   environment.systemPackages = with pkgs; [
     unstable.blender
     calibre
