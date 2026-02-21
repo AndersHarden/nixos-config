@@ -1,4 +1,5 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
+
 {
   imports = [
     ./hardware-configuration.nix
@@ -9,6 +10,8 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
+    ../../modules/profiles/server.nix
+    ../../modules/desktop/quickemu.nix
     ./hyprland.nix
   ];
 
@@ -20,6 +23,7 @@
       systemd-boot.enable = true;
       efi.canTouchEfiVariables = true;
     };
+    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
   environment.systemPackages = with pkgs; [
@@ -59,5 +63,5 @@
     })
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
 }
