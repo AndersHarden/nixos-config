@@ -1,4 +1,5 @@
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
+
 {
   imports = [
     ./hardware-configuration.nix
@@ -8,24 +9,21 @@
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
+    ../../modules/profiles/server.nix
+    ../../modules/desktop/quickemu.nix
     ./hyprland.nix
     ../../modules/desktop/wine.nix
   ];
-
-  # Ensure no ollama-related configuration remains
-  # (Remove or comment out any ollama.* or services.ollama.* options if present)
  
-  # Unika inställningar för denna dator
   networking.hostName = "laptop-intel";
   console.keyMap = "sv-latin1";
 
   nix.settings = {
-    download-buffer-size = 536870912; # 512 MB
+    download-buffer-size = 536870912;
     max-jobs = "auto";
     cores = 0;
   };
 
-  # LUKS och Bootloader
   boot = {
     loader = {
       systemd-boot.enable = true;
@@ -33,7 +31,10 @@
     };
   };
 
+<<<<<<< HEAD
   # tailored blender for intel + opencode
+=======
+>>>>>>> e7752c748f25015184cae5a1c7c957acba40a765
   environment.systemPackages = with pkgs; [
     unstable.blender
     calibre
@@ -54,13 +55,10 @@
     })
   ];
 
-  # ADB
   programs.adb.enable = true;
 
-  # Flatpak
   services.flatpak.enable = true;
   
-  # Overlay för instabila paket
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {
