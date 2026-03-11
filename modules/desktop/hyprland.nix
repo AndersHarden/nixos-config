@@ -14,5 +14,6 @@
     nwg-look
     graphite-gtk-theme
     kora-icon-theme
+    xwayland
   ];
 }
