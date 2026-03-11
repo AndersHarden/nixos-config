@@ -52,6 +52,7 @@
       '';
       meta.mainProgram = "opencode";
     })
+    picard
   ];
     
   # Overlay för instabila paket
