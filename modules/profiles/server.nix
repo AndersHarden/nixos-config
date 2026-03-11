@@ -26,4 +26,6 @@
 
   # Aktivera SSH-servern
   services.openssh.enable = true;
+    services.openssh.x11Forwarding = true;
+
 }
