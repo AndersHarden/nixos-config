@@ -26,7 +26,7 @@
   };
 
   services.openssh.settings = {
-    X11Forwarding = true;
+    x11Forwarding = true;
   };
 
   # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
