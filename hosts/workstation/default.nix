@@ -25,6 +25,10 @@
     efi.canTouchEfiVariables = true;
   };
 
+  services.openssh.settings = {
+    X11Forwarding = true;
+  };
+
   # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
   boot.kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
 
