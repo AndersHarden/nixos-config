@@ -25,8 +25,13 @@
     efi.canTouchEfiVariables = true;
   };
 
-  services.openssh.settings = {
-    x11Forwarding = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      x11Forwarding = true;
+      PermitRootLogin = "prohibit-password";
+      PasswordAuthentication = false;
+    };
   };
 
   # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
