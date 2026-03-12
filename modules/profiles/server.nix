@@ -25,13 +25,5 @@
     ''from="192.168.2.0/24" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHUTAWSpaVlajPf3IxFcZV7SN4JhyH9sQfpoP9k3RiyS root@core-ssh root@workstation''
   ];
 
-  # Aktivera SSH-servern med X11 forwarding
-  services.openssh = {
-    enable = true;
-    settings = {
-      x11Forwarding = true;
-      PermitRootLogin = "prohibit-password";
-      PasswordAuthentication = false;
-    };
-  };
+  # Aktivera SSH-servern
 }
