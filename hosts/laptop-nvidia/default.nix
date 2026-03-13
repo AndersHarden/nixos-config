@@ -27,7 +27,7 @@
   environment.systemPackages = with pkgs; [
     unstable.blender
     virt-manager
-    opencode
+    unstable.opencode
   ];
 
   nix.settings = {
@@ -37,7 +37,7 @@
   };
 
   services.flatpak.enable = true;
-  
+
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {

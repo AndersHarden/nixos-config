@@ -33,13 +33,13 @@
   environment.systemPackages = with pkgs; [
     unstable.blender
     calibre
-    opencode
+    unstable.opencode
   ];
 
   programs.adb.enable = true;
 
   services.flatpak.enable = true;
-  
+
   nixpkgs.overlays = [
     (final: prev: {
       unstable = import inputs.nixpkgs-unstable {

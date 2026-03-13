@@ -8,26 +8,9 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: let
-    overlay-unstable = final: prev: {
-      opencode = final.stdenv.mkDerivation {
-        name = "opencode";
-        src = final.fetchurl {
-          url = "https://github.com/anomalyco/opencode/releases/download/v1.2.6/opencode-linux-x64.tar.gz";
-          sha256 = "1299d49d1c9e8b07217d92cea14050650c0b5a81c2ac380d6ec0d1d26abbe61a";
-        };
-        unpackPhase = "true";
-        installPhase = ''
-          mkdir -p $out/bin
-          tar -xzf $src
-          mv opencode $out/bin/
-          chmod +x $out/bin/opencode
-        '';
-        meta.mainProgram = "opencode";
-      };
-    };
     pkgsUnstable = import nixpkgs-unstable {
       system = "x86_64-linux";
-      overlays = [ overlay-unstable ];
+      config.allowUnfree = true;
     };
   in {
     nixosConfigurations = {
