@@ -25,8 +25,8 @@
     ];
   };
 
-  # Använd den senaste kärnan för bättre hårdvarustöd
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Använd Linux 6.12 (stable) istället för latest pga kompatibilitetsproblem med 7.0
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   # ===============================================================
   # == LÄGG TILL DETTA BLOCK FÖR NÄTVERKSHANTERING               ==
