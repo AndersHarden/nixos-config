@@ -28,9 +28,7 @@ fi
 random_image=$(printf "%s\n" "${images[@]}" | shuf -n 1)
 echo "Vald bakgrund: $random_image"
 
-# Sätt bakgrund via hyprpaper
-hyprctl hyprpaper unload all
-hyprctl hyprpaper preload "$random_image"
+# Sätt bakgrund via hyprpaper (ny syntax för hyprpaper 0.8+)
 hyprctl hyprpaper wallpaper ",$random_image"
 
 # Kör wal utan output

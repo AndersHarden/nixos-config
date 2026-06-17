@@ -1,46 +1,59 @@
-# Plats: hosts/laptop-intel/hyprland.nix
-{ pkgs, config, ... }: # Lägg till 'config' här
+# Plats: hosts/workstation/hyprland.nix
+{ pkgs, config, ... }:
 
 let
-  # Definiera den host-specifika Hyprland-konfigurationen som en sträng
-  hyprlandHostConfig = pkgs.lib.strings.concatStringsSep "\n" [
-    "-- Denna fil hanteras av NixOS. Ändra inte manuellt."
-    "-- Host-specifika Hyprland-inställningar för laptop-intel"
-    ""
-    "-- MONITORS (Workstation)"
-    "monitor = DP-1, 3840x2160, 0x0, 1.5"
-    "monitor = HDMI-A-1, 2560x1440, 2560x-600, 1, transform, 1"
-    "workspace = 1, monitor:DP-1, default:true, persistent:true"
-    "workspace = 2, monitor:DP-1"
-    "workspace = 3, monitor:DP-1"
-    ""
-    "-- AUTOSTART (Workstation)"
-    "exec-once = waybar"
-    "exec-once = hyprpaper"
-    "exec-once = hypridle"
-    "exec-once = set-random-wallpaper"
-    "exec-once = trayscale --hide-window"
-    "-- exec-once = /home/anders/.config/Scripts/battery-notify"
-    "exec-once = hyprctl setcursor Adwaita 24"
-    ""
-    "-- Multimedia keys (Workstation)"
-    "bindel = ,XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-    "bindel = ,XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-    "bindel = ,XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    "bindel = ,XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-    "bindel = ,XF86MonBrightnessUp, exec, brightnessctl s 10%+"
-    "bindel = ,XF86MonBrightnessDown, exec, brightnessctl s 10%-"
-    "bindl = , XF86AudioNext, exec, playerctl next"
-    "bindl = , XF86AudioPause, exec, playerctl play-pause"
-    "bindl = , XF86AudioPlay, exec, playerctl play-pause"
-    "bindl = , XF86AudioPrev, exec, playerctl previous"
-  ];
+  hyprlandHostConfig = ''
+    -- Denna fil hanteras av NixOS. Ändra inte manuellt.
+    -- Host-specifika Hyprland-inställningar för workstation
+
+    -- MONITORS (Workstation)
+    hl.monitor({
+        output = "DP-1",
+        mode = "3840x2160",
+        position = "0x0",
+        scale = 1.5,
+    })
+    hl.monitor({
+        output = "HDMI-A-1",
+        mode = "2560x1440",
+        position = "2560x-600",
+        scale = 1,
+        transform = 1,
+    })
+
+    -- Workspace to monitor assignment
+    hl.workspace_rule({ workspace = "1", monitor = "DP-1", default = true, persistent = true })
+    hl.workspace_rule({ workspace = "2", monitor = "DP-1" })
+    hl.workspace_rule({ workspace = "3", monitor = "DP-1" })
+
+    -- AUTOSTART (Workstation)
+    hl.on("hyprland.start", function()
+        hl.exec_cmd("waybar")
+        hl.exec_cmd("hyprpaper")
+        hl.exec_cmd("hypridle")
+        hl.exec_cmd("set-random-wallpaper")
+        hl.exec_cmd("trayscale --hide-window")
+        -- hl.exec_cmd("/home/anders/.config/Scripts/battery-notify")
+        hl.exec_cmd("hyprctl setcursor Adwaita 24")
+    end)
+
+    -- Multimedia keys (Workstation)
+    hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true })
+    hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"), { locked = true })
+    hl.bind("XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
+    hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"), { locked = true })
+    hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl s 10%+"), { locked = true })
+    hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 10%-"), { locked = true })
+    hl.bind("XF86AudioNext", hl.dsp.exec_cmd("playerctl next"), { locked = true })
+    hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+    hl.bind("XF86AudioPlay", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+    hl.bind("XF86AudioPrev", hl.dsp.exec_cmd("playerctl previous"), { locked = true })
+  '';
 in
 {
   imports = [
     ../../modules/desktop/hyprland-base.nix
   ];
 
-  # Skriv den host-specifika konfigurationen till /etc/hypr/hyprland-laptop-intel.conf
   environment.etc."hypr/hyprland-${config.networking.hostName}.conf".text = hyprlandHostConfig;
 }
