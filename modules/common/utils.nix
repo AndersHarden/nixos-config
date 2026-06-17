@@ -8,7 +8,6 @@
   environment.systemPackages = with pkgs; [
     # Systemverktyg
     vscode
-    blueberry
     lm_sensors
     bluetui
     vnstat
