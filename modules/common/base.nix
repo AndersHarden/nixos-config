@@ -3,12 +3,16 @@
 {
   imports = [
     ./overlays.nix
+    ./users.nix
   ];
 
 
   # Existing settings...
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.permittedInsecurePackages = [
+    "electron-39.8.10"
+  ];
   time.timeZone = "Europe/Stockholm";
   i18n.defaultLocale = "sv_SE.UTF-8";
 
@@ -55,13 +59,6 @@
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   security.polkit.enable = true;
-
-  # Användare "anders"
-  users.users.anders = {
-    isNormalUser = true;
-    description = "Anders Hardenborg";
-    extraGroups = [ "wheel" "kvm"];
-  };
 
   # Grundläggande paket som alla behöver
   environment.systemPackages = with pkgs; [
