@@ -3,6 +3,7 @@
 {
   imports = [
     ./overlays.nix
+    ./packages.nix
     ./users.nix
   ];
 
@@ -59,30 +60,4 @@
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   security.polkit.enable = true;
-
-  # Grundläggande paket som alla behöver
-  environment.systemPackages = with pkgs; [
-    vim
-    git
-    htop
-    fastfetch
-    btop
-    nautilus
-    adwaita-icon-theme
-    home-manager
-    kdePackages.kate
-    sysstat
-    sushi
-    loupe
-    gnome-decoder
-    ffmpegthumbnailer
-    glance
-    gnome-disk-utility
-    gnome.gvfs
-    udisks2
-    ffmpeg
-    mp4v2
-    zlib
-    stdenv.cc.cc.lib
-  ];
 }
