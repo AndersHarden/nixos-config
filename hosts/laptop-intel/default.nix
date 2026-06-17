@@ -31,12 +31,11 @@
 
   # tailored blender for intel + opencode
   environment.systemPackages = with pkgs; [
+    android-tools
     unstable.blender
     calibre
     unstable.opencode
   ];
-
-  programs.adb.enable = true;
 
   services.flatpak.enable = true;
 
@@ -49,5 +48,5 @@
     })
   ];
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 }
