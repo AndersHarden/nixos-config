@@ -11,6 +11,7 @@ in
 {
   # Enable Home Manager's Hyprland module only if configs exist
   wayland.windowManager.hyprland = {
+    configType = "lua";
     enable = shouldEnable;
     extraConfig = 
       if shouldEnable then ''
