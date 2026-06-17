@@ -8,75 +8,35 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: let
-    pkgsUnstable = import nixpkgs-unstable {
+    unstablePkgs = import nixpkgs-unstable {
       system = "x86_64-linux";
       config.allowUnfree = true;
     };
+
+    mkHost = hostName: extraModules: nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; pkgsUnstable = unstablePkgs; };
+      modules = extraModules ++ [
+        ./modules/common/base.nix
+        home-manager.nixosModules.home-manager
+        ({ config, ... }: {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = {
+            inherit hostName inputs;
+            systemEtc = config.environment.etc;
+          };
+          home-manager.users.anders = {
+            imports = [ ./modules/home/anders.nix ];
+          };
+        })
+      ];
+    };
   in {
     nixosConfigurations = {
-      laptop-intel = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; pkgsUnstable = pkgsUnstable; };
-        modules = [
-          ./hosts/laptop-intel
-          ./modules/common/base.nix
-          home-manager.nixosModules.home-manager
-          ({ config, pkgs, ... }: {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = {
-              hostName = "laptop-intel";
-              inherit inputs;
-              systemEtc = config.environment.etc;
-            };
-            home-manager.users.anders = {
-              imports = [ ./modules/home/anders.nix ];
-            };
-          })
-        ];
-      };
-      laptop-nvidia = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; pkgsUnstable = pkgsUnstable; };
-        modules = [
-          ./hosts/laptop-nvidia
-          ./modules/common/base.nix
-          home-manager.nixosModules.home-manager
-          ({ config, pkgs, ... }: {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = {
-              hostName = "laptop-nvidia";
-              inherit inputs;
-              systemEtc = config.environment.etc;
-            };
-            home-manager.users.anders = {
-              imports = [ ./modules/home/anders.nix ];
-            };
-          })
-        ];
-      };
-      workstation = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = { inherit inputs; };
-        modules = [
-          ./hosts/workstation
-          ./modules/common/base.nix
-          home-manager.nixosModules.home-manager
-          ({ config, pkgs, ... }: {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.extraSpecialArgs = {
-              hostName = "workstation";
-              inherit inputs;
-              systemEtc = config.environment.etc;
-            };
-            home-manager.users.anders = {
-              imports = [ ./modules/home/anders.nix ];
-            };
-          })
-        ];
-      };
+      laptop-intel = mkHost "laptop-intel" [ ./hosts/laptop-intel ];
+      laptop-nvidia = mkHost "laptop-nvidia" [ ./hosts/laptop-nvidia ];
+      workstation = mkHost "workstation" [ ./hosts/workstation ];
     };
   };
 }
