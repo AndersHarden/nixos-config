@@ -33,5 +33,6 @@
     pywalfox-native
     ddcutil
     rwedid
+    kicad
   ];
 }
