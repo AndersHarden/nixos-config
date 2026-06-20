@@ -1,0 +1,13 @@
+diff --git a/src/bar.cpp b/src/bar.cpp
+index 6a78707..4a87d74 100644
+--- a/src/bar.cpp
++++ b/src/bar.cpp
+@@ -227,7 +227,7 @@ waybar::Bar::Bar(struct waybar_output* w_output, const Json::Value& w_config)
+   // this has to be executed before GtkWindow.realize
+   auto* gtk_window = window.gobj();
+   gtk_layer_init_for_window(gtk_window);
+-  gtk_layer_set_keyboard_mode(gtk_window, GTK_LAYER_SHELL_KEYBOARD_MODE_NONE);
++  gtk_layer_set_keyboard_mode(gtk_window, GTK_LAYER_SHELL_KEYBOARD_MODE_ON_DEMAND);
+   gtk_layer_set_monitor(gtk_window, output->monitor->gobj());
+   gtk_layer_set_namespace(gtk_window,
+                           config["name"].isString() ? config["name"].asCString() : "waybar");

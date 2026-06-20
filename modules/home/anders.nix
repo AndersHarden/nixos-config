@@ -11,6 +11,7 @@ in
   # Kitty
   imports = [
     ./waybar.nix
+    ./rofi.nix
     ./kitty.nix
     ./pywal.nix
     ./config-files.nix

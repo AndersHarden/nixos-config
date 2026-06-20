@@ -1,0 +1,47 @@
+/* Frostigt transparent rofi-tema */
+
+window {
+    background: #1e1e1e; /* mörkgrå utan alfa */
+    opacity: 0.3;        /* 30% opacitet */
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: none;
+}
+
+
+mainbox {
+    border-radius: 12px;
+    background: transparent;
+}
+
+listview {
+    columns: 1;
+    lines: 10;
+    border-radius: 8px;
+    background: transparent;
+}
+
+element {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: transparent;
+    color: #1e1e1e;
+}
+
+element selected {
+    background: #005577; /* Mörkblå, utan transparens */
+    color: white;
+}
+
+
+/* Scrollbar styling */
+scrollbar {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+}
+
+scrollbar handle {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+}
+

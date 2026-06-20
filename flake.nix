@@ -11,6 +11,13 @@
     unstablePkgs = import nixpkgs-unstable {
       system = "x86_64-linux";
       config.allowUnfree = true;
+      overlays = [
+        (final: prev: {
+          waybar = prev.waybar.overrideAttrs (old: {
+            patches = (old.patches or [ ]) ++ [ ./patches/waybar-hyprland-055.patch ./patches/waybar-keyboard-mode.patch ];
+          });
+        })
+      ];
     };
 
     mkHost = hostName: extraModules: nixpkgs.lib.nixosSystem {
