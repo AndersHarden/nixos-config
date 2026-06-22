@@ -4,7 +4,6 @@
   imports = [
     ./hardware-configuration.nix
     ../../modules/hardware/nvidia.nix
-    ../../modules/common/base.nix
     ../../modules/common/utils.nix
     ../../modules/profiles/desktop.nix
     ../../modules/profiles/services.nix
@@ -34,7 +33,7 @@
   };
 
   # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
-  boot.kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
 
   # Tailored blender for nvidia workstation
   environment.systemPackages = with pkgs; [

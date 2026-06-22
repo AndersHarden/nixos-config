@@ -1,5 +1,5 @@
 # ./modules/common/base.nix
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     ./overlays.nix
@@ -31,7 +31,7 @@
   };
 
   # Använd Linux 6.12 (stable) istället för latest pga kompatibilitetsproblem med 7.0
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
+  boot.kernelPackages = lib.mkDefault pkgs.linuxPackages_6_12;
 
   # ===============================================================
   # == LÄGG TILL DETTA BLOCK FÖR NÄTVERKSHANTERING               ==
@@ -60,4 +60,7 @@
   services.gvfs.enable = true;
   services.udisks2.enable = true;
   security.polkit.enable = true;
+  # Sudo — användare i wheel-gruppen har full åtkomst
+  security.sudo.enable = true;
+  security.sudo.wheelNeedsPassword = false;
 }
