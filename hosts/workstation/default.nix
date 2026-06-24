@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, ... }:
+{ pkgs, inputs, lib, pkgsUnstable, ... }:
 
 {
   imports = [
@@ -35,23 +35,17 @@
   # Kernel 6.12 för bättre kompatibilitet med äldre NVIDIA-drivrutiner
   boot.kernelPackages = pkgs.linuxPackages_6_12;
 
-  # Tailored blender for nvidia workstation
-  environment.systemPackages = with pkgs; [
-    (unstable.blender.override {
-        cudaSupport = true;
-    })
-    unstable.opencode
-    picard
-  ];
-    
-  # Overlay för instabila paket
+  # Overlay för instabila paket (pekar på central import från flake.nix)
   nixpkgs.overlays = [
     (final: prev: {
-      unstable = import inputs.nixpkgs-unstable {
-        system = prev.system;
-        config.allowUnfree = true;
-      };
+      unstable = pkgsUnstable;
     })
+  ];
+
+  environment.systemPackages = with pkgs; [
+    pkgsUnstable.blender
+    pkgsUnstable.opencode
+    picard
   ];
 
   system.stateVersion = "26.05";

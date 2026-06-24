@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, ... }:
+{ pkgs, inputs, lib, pkgsUnstable, ... }:
 
 {
   imports = [
@@ -29,24 +29,21 @@
     };
   };
 
-  # tailored blender for intel + opencode
+  # Overlay för instabila paket (pekar på central import från flake.nix)
+  nixpkgs.overlays = [
+    (final: prev: {
+      unstable = pkgsUnstable;
+    })
+  ];
+
   environment.systemPackages = with pkgs; [
     android-tools
-    unstable.blender
+    pkgsUnstable.blender
     calibre
-    unstable.opencode
+    pkgsUnstable.opencode
   ];
 
   services.flatpak.enable = true;
-
-  nixpkgs.overlays = [
-    (final: prev: {
-      unstable = import inputs.nixpkgs-unstable {
-        system = prev.system;
-        config.allowUnfree = true;
-      };
-    })
-  ];
 
   system.stateVersion = "26.05";
 }

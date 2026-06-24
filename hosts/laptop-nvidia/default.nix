@@ -1,4 +1,4 @@
-{ pkgs, inputs, lib, ... }:
+{ pkgs, inputs, lib, pkgsUnstable, ... }:
 
 {
   imports = [
@@ -24,10 +24,17 @@
     kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
+  # Overlay för instabila paket (pekar på central import från flake.nix)
+  nixpkgs.overlays = [
+    (final: prev: {
+      unstable = pkgsUnstable;
+    })
+  ];
+
   environment.systemPackages = with pkgs; [
-    unstable.blender
+    pkgsUnstable.blender
     virt-manager
-    unstable.opencode
+    pkgsUnstable.opencode
   ];
 
   nix.settings = {
@@ -37,15 +44,6 @@
   };
 
   services.flatpak.enable = true;
-
-  nixpkgs.overlays = [
-    (final: prev: {
-      unstable = import inputs.nixpkgs-unstable {
-        system = prev.system;
-        config.allowUnfree = true;
-      };
-    })
-  ];
 
   system.stateVersion = "26.05";
 }

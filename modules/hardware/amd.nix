@@ -21,8 +21,6 @@
 
   # AMD specific packages
   environment.systemPackages = with pkgs; [ 
-    (unstable.blender.override {
-      rocmSupport = true;
-    })
+    unstable.blender
   ];
 }
