@@ -9,7 +9,6 @@
     librosa
     pydub
     openai-whisper
-    torch-bin
     faster-whisper
     types-beautifulsoup4
     mitmproxy

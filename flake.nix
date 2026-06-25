@@ -8,19 +8,19 @@
   };
 
   outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, ... }@inputs: let
-    unstablePkgs = import nixpkgs-unstable {
-      system = "x86_64-linux";
-      config.allowUnfree = true;
-      overlays = [
-        (final: prev: {
-          waybar = prev.waybar.overrideAttrs (old: {
-            patches = (old.patches or [ ]) ++ [ ./patches/waybar-hyprland-055.patch ./patches/waybar-keyboard-mode.patch ];
-          });
-        })
-      ];
-    };
-
-    mkHost = hostName: extraModules: nixpkgs.lib.nixosSystem {
+    mkHost = hostName: extraModules: let
+      unstablePkgs = import nixpkgs-unstable {
+        system = "x86_64-linux";
+        config.allowUnfree = true;
+        overlays = [
+          (final: prev: {
+            waybar = prev.waybar.overrideAttrs (old: {
+              patches = (old.patches or [ ]) ++ [ ./patches/waybar-hyprland-055.patch ./patches/waybar-keyboard-mode.patch ];
+            });
+          })
+        ];
+      };
+    in nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       specialArgs = { inherit inputs; pkgsUnstable = unstablePkgs; };
       modules = extraModules ++ [

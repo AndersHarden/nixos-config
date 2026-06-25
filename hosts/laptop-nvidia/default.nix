@@ -24,7 +24,6 @@
     kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
-  # Overlay för instabila paket (pekar på central import från flake.nix)
   nixpkgs.overlays = [
     (final: prev: {
       unstable = pkgsUnstable;
@@ -39,9 +38,12 @@
 
   nix.settings = {
     download-buffer-size = 268435456;
-    max-jobs = "auto";
+    max-jobs = 1;
     cores = 0;
   };
+
+  zramSwap.enable = true;
+  zramSwap.memoryPercent = 50;
 
   services.flatpak.enable = true;
 
