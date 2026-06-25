@@ -37,9 +37,9 @@ if [[ "$layout" == 'NO' ]]; then
 	fi
 	option_2=" Stop"
 	option_3=" Previous"
-	option_4=" Next"
+	option_4=" Next"
 	option_5=" Repeat"
-	option_6=" Random"
+	option_6=" Random"
 else
 	if [[ ${status} == *"[playing]"* ]]; then
 		option_1=""
@@ -48,9 +48,9 @@ else
 	fi
 	option_2=""
 	option_3=""
-	option_4=""
+	option_4=""
 	option_5=""
-	option_6=""
+	option_6=""
 fi
 
 # Toggle Actions
@@ -62,7 +62,7 @@ if [[ ${status} == *"repeat: on"* ]]; then
 elif [[ ${status} == *"repeat: off"* ]]; then
     urgent="-u 4"
 else
-    option_5=" Parsing Error"
+    option_5=" Parsing Error"
 fi
 # Random
 if [[ ${status} == *"random: on"* ]]; then
@@ -70,7 +70,7 @@ if [[ ${status} == *"random: on"* ]]; then
 elif [[ ${status} == *"random: off"* ]]; then
     [ -n "$urgent" ] && urgent+=",5" || urgent="-u 5"
 else
-    option_6=" Parsing Error"
+    option_6=" Parsing Error"
 fi
 
 # Rofi CMD

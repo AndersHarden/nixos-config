@@ -24,6 +24,7 @@ in
       gcc  # Inkluderar libstdc++.so.6
       python3  # Säkerställer att Python 3 är tillgängligt
       python3Packages.numpy  # Lägg till numpy via Nix (valfritt, se nedan)
+      nerd-fonts.jetbrains-mono
   ];
 
   # PATH och session-variabler
