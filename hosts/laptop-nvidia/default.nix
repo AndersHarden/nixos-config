@@ -24,6 +24,8 @@
     kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
+  hardware.nvidia.package = pkgs.linuxPackages_6_12.nvidiaPackages.legacy_470;
+
   nixpkgs.overlays = [
     (final: prev: {
       unstable = pkgsUnstable;

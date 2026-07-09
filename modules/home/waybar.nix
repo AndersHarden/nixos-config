@@ -52,8 +52,9 @@ let
 
     "custom/set-random-wallpaper" = {
       format = " ";
-      interval = 0;
-      tooltip = "Set random wallpaper";
+      interval = 86400;
+      exec = "echo '{\"text\":\" \"}'";
+      "return-type" = "json";
       "on-click" = "~/.local/bin/set-random-wallpaper";
     };
 

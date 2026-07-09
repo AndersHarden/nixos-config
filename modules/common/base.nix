@@ -11,6 +11,7 @@
   # Existing settings...
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.nvidia.acceptLicense = true;
   nixpkgs.config.permittedInsecurePackages = [
     "electron-39.8.10"
   ];
