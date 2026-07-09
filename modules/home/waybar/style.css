@@ -1,5 +1,7 @@
 /* ~/.config/waybar/style.css */
-@import url("/home/anders/.cache/waybar-color.css");
+* {
+  color: #ffffff;
+}
 
 /* Statusfältet */
 #waybar {
@@ -31,6 +33,10 @@
 
 tooltip {
   padding: 2px;
+  color: #ffffff;
+  background-color: #222222;
+  border: 1px solid #444444;
+  border-radius: 4px;
 }
 
 #custom-resource-monitor.fa-icon {

@@ -2,6 +2,10 @@
 
 let
   waybarConfig = builtins.toJSON {
+    style = [
+      "/home/anders/.config/waybar/style.css"
+      "/home/anders/.cache/waybar-color.css"
+    ];
     env = {
       PATH = "/home/anders/.local/bin:/home/anders/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin";
     };
@@ -62,6 +66,7 @@ let
       format = "{text}";
       "return-type" = "json";
       interval = 5;
+      tooltip = true;
     };
 
     "custom/network-vnstat" = {
@@ -106,6 +111,7 @@ let
       format = "{text}";
       "return-type" = "json";
       interval = 30;
+      tooltip = true;
     };
   };
 in
