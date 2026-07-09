@@ -1,0 +1,13 @@
+diff --git a/src/modules/hyprland/backend.cpp b/src/modules/hyprland/backend.cpp
+index 7060d30..0c98f1a 100644
+--- a/src/modules/hyprland/backend.cpp
++++ b/src/modules/hyprland/backend.cpp
+@@ -152,7 +152,7 @@ std::string IPC::getSocket1Reply(const std::string& rq) {
+   sockaddr_un serverAddress = {0};
+   serverAddress.sun_family = AF_UNIX;
+ 
+-  std::string socketPath = IPC::getSocketFolder(instanceSig) / ".socket.sock";
++  std::string socketPath = IPC::getSocketFolder(instanceSig) / ".socket2.sock";
+ 
+   // Use snprintf to copy the socketPath string into serverAddress.sun_path
+   if (snprintf(serverAddress.sun_path, sizeof(serverAddress.sun_path), "%s", socketPath.c_str()) <
