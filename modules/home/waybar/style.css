@@ -3,7 +3,7 @@
 
 /* Statusfältet */
 #waybar {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.3);
     font-family: "JetBrains Mono", "Font Awesome 6 Free", sans-serif;
     font-size: 13px;
     padding: 0 8px;
@@ -35,6 +35,9 @@ tooltip {
   background-color: #222222;
   border: 1px solid #444444;
   border-radius: 4px;
+}
+tooltip label {
+  color: #ffffff;
 }
 
 #workspaces button {

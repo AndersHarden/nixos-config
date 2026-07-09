@@ -65,7 +65,7 @@ WAYBAR_CSS="$HOME/.cache/waybar-color.css"
 mkdir -p "$(dirname "$WAYBAR_CSS")"
 
 cat > "$WAYBAR_CSS" <<EOF
-#waybar * {
+* {
   color: $text_color;
 }
 EOF
