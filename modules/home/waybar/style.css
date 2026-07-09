@@ -3,7 +3,7 @@
 
 /* Statusfältet */
 #waybar {
-    background: rgba(0, 0, 0, 0.3);
+    background: transparent;
     font-family: "JetBrains Mono", "Font Awesome 6 Free", sans-serif;
     font-size: 13px;
     padding: 0 8px;
