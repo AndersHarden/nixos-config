@@ -31,6 +31,7 @@
           home-manager.useUserPackages = true;
           home-manager.extraSpecialArgs = {
             inherit hostName inputs;
+            pkgsUnstable = unstablePkgs;
             systemEtc = config.environment.etc;
           };
           home-manager.users.anders = {

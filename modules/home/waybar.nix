@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, pkgsUnstable, ... }:
 
 let
   waybarConfig = builtins.toJSON {
@@ -114,6 +114,7 @@ in
 {
   programs.waybar = {
     enable = true;
+    package = pkgsUnstable.waybar;
   };
 
   xdg.configFile."waybar/config.jsonc" = {
