@@ -2,10 +2,6 @@
 
 let
   waybarConfig = builtins.toJSON {
-    style = [
-      "/home/anders/.config/waybar/style.css"
-      "/home/anders/.cache/waybar-color.css"
-    ];
     env = {
       PATH = "/home/anders/.local/bin:/home/anders/.nix-profile/bin:/run/current-system/sw/bin:/usr/bin:/bin";
     };

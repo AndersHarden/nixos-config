@@ -1,7 +1,5 @@
 /* ~/.config/waybar/style.css */
-* {
-  color: #ffffff;
-}
+@import url("/home/anders/.cache/waybar-color.css");
 
 /* Statusfältet */
 #waybar {
