@@ -15,7 +15,7 @@
         overlays = [
           (final: prev: {
             waybar = prev.waybar.overrideAttrs (old: {
-              patches = (old.patches or [ ]) ++ [ ./patches/waybar-hyprland-055.patch ./patches/waybar-keyboard-mode.patch ];
+              patches = (old.patches or [ ]) ++ [ ./patches/waybar-keyboard-mode.patch ];
             });
           })
         ];

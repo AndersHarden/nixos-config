@@ -37,6 +37,17 @@ tooltip {
   border-radius: 4px;
 }
 
+#workspaces button {
+  border-radius: 4px;
+  padding: 0 6px;
+}
+#workspaces button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+#workspaces button.active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 #custom-resource-monitor.fa-icon {
   font-family: "Font Awesome 6 Free";
   font-weight: 900; /* Solid variant */
