@@ -11,6 +11,7 @@ in
   # Create hyprpaper configuration
   xdg.configFile."hypr/hyprpaper.conf".text = ''
     # Hyprpaper configuration managed by Home Manager
+    splash = false
     preload = /home/anders/.config/default-wallpaper.jpg
     wallpaper = ,/home/anders/.config/default-wallpaper.jpg
   '';
