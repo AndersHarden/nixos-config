@@ -12,7 +12,7 @@ The same change removes Bitwarden Desktop from the declarative NixOS desktop pac
 - Remove only `bitwarden-desktop` from `modules/desktop/browsers.nix`.
 - Add global CloudCompare and MeshLab MCP entries to `~/.config/opencode/opencode.json`.
 - Run CloudCompare MCP from a pinned Git commit.
-- Create a local standards-compliant PyMeshLab MCP project under `~/MCP/MeshLab-MCP`.
+- Create a standards-compliant PyMeshLab MCP package under `packages/meshlab-mcp` in the NixOS repository.
 - Update `pointcloud-analysis/SKILL.md` and `mesh-repair/SKILL.md` with explicit application and MCP responsibilities.
 - Build and activate `.#laptop-intel`.
 - Commit and push the intended NixOS repository changes to `origin/main`.
@@ -43,7 +43,7 @@ Skills use named tools instead of the server's unrestricted raw-command escape h
 
 ### MeshLab MCP
 
-`~/MCP/MeshLab-MCP` is a small Python project using the official MCP Python SDK, PyMeshLab, and `stdio` transport. OpenCode starts it through `uv run --project` so dependencies stay isolated from the system Python environment.
+`packages/meshlab-mcp` contains a small Python server using the official MCP Python SDK, PyMeshLab, and `stdio` transport. A Nix wrapper supplies a `python313.withPackages` environment containing `mcp` and `pymeshlab`, which is required because the upstream PyPI PyMeshLab wheel does not resolve its native libraries directly on NixOS. OpenCode starts the installed `meshlab-mcp` command.
 
 The server is stateless. Every mutating request supplies an absolute input path and a distinct output path. Each call opens its own `pymeshlab.MeshSet`, applies one constrained operation, saves to a temporary path, reads the result back, and atomically publishes it only after validation.
 
@@ -127,5 +127,5 @@ Before editing either skill, run baseline subagent scenarios without the propose
 - Never stage or alter the pre-existing `flake.lock` modification.
 - Commit the design separately from implementation.
 - Commit the NixOS package removal after successful build and activation, then push intended commits to `origin/main`.
-- OpenCode configuration and files under `~/MCP` and `/home/anders/Projekt/FreeCAD/skills` are outside the NixOS Git repository and are not included in its commits.
+- The global OpenCode configuration and files under `/home/anders/Projekt/FreeCAD/skills` are outside the NixOS Git repository and are not included in its commits. The MeshLab MCP source and Nix wrapper are versioned in the NixOS repository.
 - Restart OpenCode after changing its global configuration because MCP configuration is loaded only at startup.
