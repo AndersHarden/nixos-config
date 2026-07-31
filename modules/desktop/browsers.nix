@@ -7,7 +7,6 @@
     chromedriver
     ladybird
     brave
-    bitwarden-desktop
   ];
 
 }

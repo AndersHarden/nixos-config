@@ -2,6 +2,9 @@
 
 { config, pkgs, ... }:
 
+let
+  meshlabMcp = pkgs.callPackage ../../packages/meshlab-mcp { };
+in
 {
   environment.systemPackages = with pkgs; [
     # 3D
@@ -9,6 +12,7 @@
     freecad
     openscad
     meshlab
+    meshlabMcp
     cloudcompare
     f3d
 
