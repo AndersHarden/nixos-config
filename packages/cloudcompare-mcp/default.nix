@@ -1,4 +1,4 @@
-{ fetchFromGitHub, python313, writeShellApplication }:
+{ cloudcompare, fetchFromGitHub, python313, writeShellApplication }:
 let
   src = fetchFromGitHub {
     owner = "yufeioptimal";
@@ -19,6 +19,8 @@ writeShellApplication {
   name = "cloudcompare-mcp";
   runtimeInputs = [ pythonEnv ];
   text = ''
-    exec ${pythonEnv}/bin/python ${src}/src/cloudcompare_mcp/server.py "$@"
+    export CLOUDCOMPARE_MCP_SOURCE="${src}/src"
+    export CLOUDCOMPARE_VERSION="${cloudcompare.version}"
+    exec ${pythonEnv}/bin/python ${./server.py} "$@"
   '';
 }

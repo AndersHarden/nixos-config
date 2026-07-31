@@ -16,6 +16,8 @@
 - Create `packages/meshlab-mcp/server.py`: FastMCP server and the eight public tools.
 - Create `packages/meshlab-mcp/default.nix`: Nix wrapper containing Python, MCP SDK, and PyMeshLab.
 - Create `packages/cloudcompare-mcp/default.nix`: pinned upstream source and flake-locked Python runtime wrapper.
+- Create `packages/cloudcompare-mcp/server.py`: load upstream and correct its unsupported version/readiness handler.
+- Create `packages/cloudcompare-mcp/tests/test_server.py`: focused handler and runtime-dispatch regression tests.
 - Create `packages/meshlab-mcp/tests/conftest.py`: reusable closed and open mesh fixtures.
 - Create `packages/meshlab-mcp/tests/test_mesh_ops.py`: unit and geometry integration tests.
 - Create `packages/meshlab-mcp/tests/test_server.py`: MCP tool registration and `stdio` protocol tests.
@@ -865,15 +867,35 @@ Confirm `flake.lock` remains modified and unstaged.
 
 **Files:**
 - Create: `packages/cloudcompare-mcp/default.nix`
+- Create: `packages/cloudcompare-mcp/server.py`
+- Create: `packages/cloudcompare-mcp/tests/test_server.py`
 - Modify: `modules/desktop/media-creation.nix`
 - Modify: `/home/anders/.config/opencode/opencode.json`
 
-- [ ] **Step 1: Add the declarative CloudCompare MCP wrapper**
+- [ ] **Step 1: Write failing version/readiness tests**
 
-Create `packages/cloudcompare-mcp/default.nix`:
+Create `packages/cloudcompare-mcp/tests/test_server.py` with fake upstream response helpers and a `call_tool` method that constructs its dispatch inside each call. Test that the patched dispatch returns the configured version and binary, and that missing binary or `CLOUDCOMPARE_VERSION` returns an error without `ready`.
+
+Run:
+
+```bash
+PYTHONPATH=packages/cloudcompare-mcp nix shell --impure --expr 'with import <nixpkgs> {}; python313.withPackages (ps: with ps; [ pytest ])' --command pytest packages/cloudcompare-mcp/tests -v
+```
+
+Expected: collection fails because `packages/cloudcompare-mcp/server.py` does not exist.
+
+- [ ] **Step 2: Add the local upstream handler patch**
+
+Create `packages/cloudcompare-mcp/server.py`. It must load `cloudcompare_mcp.server` from mandatory `CLOUDCOMPARE_MCP_SOURCE`, replace `handle_get_cloudcompare_info`, and call upstream `main()`. The replacement must use upstream `find_cloudcompare`, `_ok`, and `_err`; success contains `binary`, `platform`, `version`, and `ready: true`, while missing binary or version returns only a structured error.
+
+Run the Step 1 command again. Expected: all focused tests pass, including the runtime-dispatch assertion.
+
+- [ ] **Step 3: Update the declarative CloudCompare MCP wrapper**
+
+Update `packages/cloudcompare-mcp/default.nix` to accept `cloudcompare`, export the fetched `${src}/src` path as `CLOUDCOMPARE_MCP_SOURCE`, export `${cloudcompare.version}` as `CLOUDCOMPARE_VERSION`, and execute local `${./server.py}` without writing to stdout:
 
 ```nix
-{ fetchFromGitHub, python313, writeShellApplication }:
+{ cloudcompare, fetchFromGitHub, python313, writeShellApplication }:
 let
   src = fetchFromGitHub {
     owner = "yufeioptimal";
@@ -894,16 +916,18 @@ writeShellApplication {
   name = "cloudcompare-mcp";
   runtimeInputs = [ pythonEnv ];
   text = ''
-    exec ${pythonEnv}/bin/python ${src}/src/cloudcompare_mcp/server.py "$@"
+    export CLOUDCOMPARE_MCP_SOURCE=${src}/src
+    export CLOUDCOMPARE_VERSION=${cloudcompare.version}
+    exec ${pythonEnv}/bin/python ${./server.py} "$@"
   '';
 }
 ```
 
-- [ ] **Step 2: Install the wrapper beside CloudCompare**
+- [ ] **Step 4: Install the wrapper beside CloudCompare**
 
 Add `cloudcompareMcp = pkgs.callPackage ../../packages/cloudcompare-mcp { };` in the existing `let` block in `modules/desktop/media-creation.nix`. Add `cloudcompareMcp` immediately after the existing `cloudcompare` package and preserve every other byte.
 
-- [ ] **Step 3: Build and smoke-test the wrapper directly**
+- [ ] **Step 5: Build and smoke-test the wrapper directly**
 
 Build the package with the flake's pinned nixpkgs:
 
@@ -954,14 +978,21 @@ async def main() -> None:
                     await session.initialize()
                     tools = await session.list_tools()
                     assert len(tools.tools) == 14
+                    info = await session.call_tool("get_cloudcompare_info", {})
                     metadata = await session.call_tool("read_cloud_metadata", {"file_path": str(source)})
                     sampled = await session.call_tool("subsample", {
                         "input_path": str(source), "output_path": str(output),
                         "method": "RANDOM", "parameter": 2,
                     })
                     output_metadata = await session.call_tool("read_cloud_metadata", {"file_path": str(output)})
-            assert not metadata.isError and not sampled.isError and not output_metadata.isError
+            assert not info.isError and not metadata.isError and not sampled.isError and not output_metadata.isError
             text = lambda result: "".join(item.text for item in result.content if item.type == "text")
+            assert json.loads(text(info)) == {
+                "binary": "/run/current-system/sw/bin/CloudCompare",
+                "platform": "Linux",
+                "version": "2.13.2",
+                "ready": True,
+            }
             assert json.loads(text(metadata))["point_count"] == 4
             assert json.loads(text(sampled))["success"] is True
             assert json.loads(text(output_metadata))["point_count"] == 2
@@ -971,9 +1002,9 @@ asyncio.run(main())
 PY
 ```
 
-Expected: initialization and all calls succeed, 14 tools are listed, and the output is a readable two-point PLY. `get_cloudcompare_info` may be used to verify the executable path but not the package version. Verify CloudCompare version `2.13.2` with `nix eval --raw .#nixosConfigurations.laptop-intel.pkgs.cloudcompare.version`; `CloudCompare --version` is unsupported and exits nonzero.
+Expected: initialization and all calls succeed, 14 tools are listed, `get_cloudcompare_info` reports the exact binary and Nix package version 2.13.2, and the output is a readable two-point PLY. Verify the same version with `nix eval --raw .#nixosConfigurations.laptop-intel.pkgs.cloudcompare.version`; `CloudCompare --version` remains unsupported and is never executed by the local handler.
 
-- [ ] **Step 4: Build and activate the laptop configuration**
+- [ ] **Step 6: Build and activate the laptop configuration**
 
 ```bash
 nix build .#nixosConfigurations.laptop-intel.config.system.build.toplevel --no-link
@@ -981,9 +1012,9 @@ sudo nixos-rebuild switch --flake .#laptop-intel
 test -x /run/current-system/sw/bin/cloudcompare-mcp
 ```
 
-Expected: build and activation exit 0, and the installed wrapper is executable. Repeat Step 3's smoke with `SERVER = "/run/current-system/sw/bin/cloudcompare-mcp"` to verify the active profile headlessly.
+Expected: build and activation exit 0, and the installed wrapper is executable. Repeat Step 5's smoke with `SERVER = "/run/current-system/sw/bin/cloudcompare-mcp"` to verify the active profile headlessly.
 
-- [ ] **Step 5: Replace the global MCP command and deny the raw tool**
+- [ ] **Step 7: Replace the global MCP command and deny the raw tool**
 
 Preserve every existing key in `/home/anders/.config/opencode/opencode.json`. Replace only the `cloudcompare.command` array and add the top-level permission:
 
@@ -1011,7 +1042,7 @@ Add this separate top-level key beside `mcp`:
 
 OpenCode exposes MCP tools as `<server>_<tool>`, making `cloudcompare_run_cloudcompare_command` the exact permission key.
 
-- [ ] **Step 6: Validate the resolved OpenCode configuration and permission**
+- [ ] **Step 8: Validate the resolved OpenCode configuration and permission**
 
 ```bash
 opencode debug config
