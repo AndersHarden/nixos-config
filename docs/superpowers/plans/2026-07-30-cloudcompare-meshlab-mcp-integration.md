@@ -869,8 +869,10 @@ Confirm `flake.lock` remains modified and unstaged.
 
 Use revision `22b5232fd14e8ca02105aa47dcac40ad248a705c`:
 
+Upstream declares `mcp>=1.3.0` but uses APIs incompatible with MCP 2.0.0, so every `uvx` invocation must constrain the dependency to `mcp<2`. This OpenCode version resolves local MCP process variables from `environment`.
+
 ```bash
-uvx --from 'git+https://github.com/yufeioptimal/cloudcompare-mcp.git@22b5232fd14e8ca02105aa47dcac40ad248a705c' cloudcompare-mcp
+uvx --with 'mcp<2' --from 'git+https://github.com/yufeioptimal/cloudcompare-mcp.git@22b5232fd14e8ca02105aa47dcac40ad248a705c' cloudcompare-mcp
 ```
 
 Run a client against the pinned process:
@@ -896,7 +898,7 @@ async def main() -> None:
         source.write_text("0 0 0\n1 0 0\n0 1 1\n", encoding="ascii")
         params = StdioServerParameters(
             command="uvx",
-            args=["--from", f"git+https://github.com/yufeioptimal/cloudcompare-mcp.git@{REVISION}", "cloudcompare-mcp"],
+            args=["--with", "mcp<2", "--from", f"git+https://github.com/yufeioptimal/cloudcompare-mcp.git@{REVISION}", "cloudcompare-mcp"],
             env={**os.environ, "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"},
         )
         async with stdio_client(params) as (read_stream, write_stream):
@@ -935,13 +937,15 @@ Preserve every existing key in `/home/anders/.config/opencode/opencode.json` and
   "type": "local",
   "command": [
     "uvx",
+    "--with",
+    "mcp<2",
     "--from",
     "git+https://github.com/yufeioptimal/cloudcompare-mcp.git@22b5232fd14e8ca02105aa47dcac40ad248a705c",
     "cloudcompare-mcp"
   ],
   "enabled": true,
   "timeout": 120000,
-  "env": {
+  "environment": {
     "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"
   }
 },
