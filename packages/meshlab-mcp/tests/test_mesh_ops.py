@@ -1,3 +1,4 @@
+import base64
 import os
 from pathlib import Path
 from typing import get_args, get_type_hints
@@ -555,3 +556,68 @@ def test_cleanup_failure_after_commit_returns_warning(
     assert output_path.is_file()
     assert any("post-commit cleanup failed" in warning for warning in result["warnings"])
     assert "warnings" in mesh_ops.MeshOperationResult.__optional_keys__
+
+
+def test_transform_rejects_material_obj_sidecar_output(tmp_path: Path) -> None:
+    input_path = tmp_path / "textured.obj"
+    material_path = tmp_path / "material.mtl"
+    texture_path = tmp_path / "texture.png"
+    input_path.write_text(
+        """\
+mtllib material.mtl
+v 0 0 0
+v 1 0 0
+v 0 1 0
+vt 0 0
+vt 1 0
+vt 0 1
+usemtl material
+f 1/1 2/2 3/3
+""",
+        encoding="ascii",
+    )
+    material_path.write_text(
+        """\
+newmtl material
+Kd 1.0 1.0 1.0
+map_Kd texture.png
+""",
+        encoding="ascii",
+    )
+    texture_path.write_bytes(
+        base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk"
+            "+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        )
+    )
+    source_bytes = {
+        path: path.read_bytes()
+        for path in (input_path, material_path, texture_path)
+    }
+    output_path = tmp_path / "output.obj"
+
+    with pytest.raises(
+        MeshOperationError, match="multi-file mesh output is not supported"
+    ):
+        mesh_ops.export_mesh(str(input_path), str(output_path))
+
+    assert all(
+        path.read_bytes() == content for path, content in source_bytes.items()
+    )
+    assert not output_path.exists()
+    assert not any(
+        path.name.startswith(".output-staging-") for path in tmp_path.iterdir()
+    )
+
+
+@pytest.mark.parametrize("extension", ["obj", "off", "ply", "stl"])
+def test_export_mesh_supports_single_file_formats(
+    cube_path: Path, tmp_path: Path, extension: str
+) -> None:
+    output_path = tmp_path / f"single.{extension}"
+
+    result = mesh_ops.export_mesh(str(cube_path), str(output_path))
+
+    assert output_path.is_file()
+    assert result["after"]["vertices"] > 0
+    assert result["after"]["faces"] > 0

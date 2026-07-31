@@ -167,17 +167,24 @@ def _cleanup_staging(
     output_directory_fd: int,
     staging_directory_fd: int | None,
     staging_name: str | None,
-    temporary_name: str | None,
     staging_identity: tuple[int, int] | None,
 ) -> list[str]:
     warnings: list[str] = []
-    if staging_directory_fd is not None and temporary_name is not None:
+    if staging_directory_fd is not None:
         try:
-            os.unlink(temporary_name, dir_fd=staging_directory_fd)
-        except FileNotFoundError:
-            pass
+            staging_entries = os.listdir(staging_directory_fd)
         except OSError as error:
-            warnings.append(f"Failed to remove staging mesh: {error}")
+            warnings.append(f"Failed to list staging directory: {error}")
+        else:
+            for entry in staging_entries:
+                try:
+                    os.unlink(entry, dir_fd=staging_directory_fd)
+                except FileNotFoundError:
+                    pass
+                except OSError as error:
+                    warnings.append(
+                        f"Failed to remove staging entry '{entry}': {error}"
+                    )
     if staging_directory_fd is not None:
         try:
             os.close(staging_directory_fd)
@@ -240,8 +247,8 @@ def _transform(
         staging_stat = os.fstat(staging_directory_fd)
         staging_identity = (staging_stat.st_dev, staging_stat.st_ino)
 
-        # 0700 hides the named temp from other users; a same-UID attacker can
-        # still race names, so inode and file type are checked before commit.
+        # Same-UID manipulation is outside the threat model. Mode 0700 blocks
+        # other UIDs; inode checks catch accidental replacement, not same-UID attacks.
         temporary_name = f"mesh-{secrets.token_hex(8)}{destination.suffix}"
         temporary_fd = os.open(
             temporary_name,
@@ -256,6 +263,8 @@ def _transform(
             f"/proc/self/fd/{staging_directory_fd}/{temporary_name}"
         )
         mesh_set.save_current_mesh(str(temporary_path))
+        if set(os.listdir(staging_directory_fd)) != {temporary_name}:
+            raise MeshOperationError("multi-file mesh output is not supported")
         after = _metadata(_load_mesh(temporary_path))
         if after["vertices"] == 0 or after["faces"] == 0:
             raise MeshOperationError("Operation produced an empty mesh")
@@ -306,7 +315,6 @@ def _transform(
             output_directory_fd,
             staging_directory_fd,
             staging_name,
-            temporary_name,
             staging_identity,
         )
         staging_directory_fd = None
@@ -333,7 +341,6 @@ def _transform(
                 output_directory_fd,
                 staging_directory_fd,
                 staging_name,
-                temporary_name,
                 staging_identity,
             )
         if output_directory_fd is not None:
