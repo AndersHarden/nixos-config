@@ -786,8 +786,8 @@ Expected: activation completes without evaluation or service errors.
 - [ ] **Step 2: Verify installed applications and MCP command**
 
 ```bash
-command -v cloudcompare
-cloudcompare --version
+command -v CloudCompare
+CloudCompare --version
 command -v meshlab
 meshlab --version
 command -v meshlab-mcp
@@ -897,7 +897,7 @@ async def main() -> None:
         params = StdioServerParameters(
             command="uvx",
             args=["--from", f"git+https://github.com/yufeioptimal/cloudcompare-mcp.git@{REVISION}", "cloudcompare-mcp"],
-            env={**os.environ, "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/cloudcompare"},
+            env={**os.environ, "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"},
         )
         async with stdio_client(params) as (read_stream, write_stream):
             async with ClientSession(read_stream, write_stream) as session:
@@ -924,7 +924,7 @@ asyncio.run(main())
 PY
 ```
 
-Expected: the server identifies `/run/current-system/sw/bin/cloudcompare`, reports three points, and creates a readable PLY output.
+Expected: the server identifies `/run/current-system/sw/bin/CloudCompare`, reports three points, and creates a readable PLY output.
 
 - [ ] **Step 2: Add both global MCP entries**
 
@@ -942,7 +942,7 @@ Preserve every existing key in `/home/anders/.config/opencode/opencode.json` and
   "enabled": true,
   "timeout": 120000,
   "env": {
-    "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/cloudcompare"
+    "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"
   }
 },
 "meshlab": {
@@ -1137,7 +1137,7 @@ Expected: both commands exit 0 without changing `flake.lock` beyond its pre-exis
 - [ ] **Step 3: Verify active programs and MCP configuration**
 
 ```bash
-cloudcompare --version
+CloudCompare --version
 meshlab --version
 command -v meshlab-mcp
 opencode debug config
