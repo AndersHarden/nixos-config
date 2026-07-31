@@ -65,7 +65,7 @@ def _metadata(mesh_set: pymeshlab.MeshSet) -> dict:
         "boundary_edges": int(topological["boundary_edges"]),
         "is_two_manifold": bool(topological["is_mesh_two_manifold"]),
         "surface_area": float(geometric["surface_area"]),
-        "volume": float(geometric["mesh_volume"]),
+        "volume": float(geometric.get("mesh_volume", 0.0)),
         "bounds": {"min": _vector(bounds.min()), "max": _vector(bounds.max())},
     }
 

@@ -18,6 +18,24 @@ def test_inspect_mesh_returns_cube_metadata(cube_path: Path) -> None:
     }
 
 
+def test_inspect_mesh_returns_open_mesh_metadata(open_tetra_path: Path) -> None:
+    metadata = inspect_mesh(str(open_tetra_path))
+
+    assert metadata["input_path"] == str(open_tetra_path)
+    assert metadata["vertices"] == 4
+    assert metadata["faces"] == 3
+    assert metadata["connected_components"] == 1
+    assert metadata["holes"] == 1
+    assert metadata["boundary_edges"] == 3
+    assert metadata["is_two_manifold"] is True
+    assert metadata["surface_area"] > 0.0
+    assert metadata["volume"] == 0.0
+    assert metadata["bounds"] == {
+        "min": [-1.0, -1.0, -1.0],
+        "max": [1.0, 1.0, 1.0],
+    }
+
+
 def test_inspect_mesh_rejects_relative_input() -> None:
     with pytest.raises(MeshOperationError, match="absolute"):
         inspect_mesh("cube.obj")
