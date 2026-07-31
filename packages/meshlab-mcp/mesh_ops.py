@@ -46,6 +46,8 @@ def _load_mesh(path: Path) -> pymeshlab.MeshSet:
         raise MeshOperationError(f"Failed to load mesh '{path}': {error}") from error
     if mesh_set.current_mesh().vertex_number() == 0:
         raise MeshOperationError(f"Mesh has no vertices: {path}")
+    if mesh_set.current_mesh().face_number() == 0:
+        raise MeshOperationError(f"Mesh has no faces: {path}")
     return mesh_set
 
 
@@ -53,7 +55,7 @@ def _vector(value: Iterable[float]) -> list[float]:
     return [float(component) for component in value]
 
 
-def _metadata(mesh_set: pymeshlab.MeshSet) -> dict:
+def _metadata(mesh_set: pymeshlab.MeshSet) -> dict[str, object]:
     topological = mesh_set.get_topological_measures()
     geometric = mesh_set.get_geometric_measures()
     bounds = geometric["bbox"]
@@ -66,10 +68,11 @@ def _metadata(mesh_set: pymeshlab.MeshSet) -> dict:
         "is_two_manifold": bool(topological["is_mesh_two_manifold"]),
         "surface_area": float(geometric["surface_area"]),
         "volume": float(geometric.get("mesh_volume", 0.0)),
+        "volume_available": "mesh_volume" in geometric,
         "bounds": {"min": _vector(bounds.min()), "max": _vector(bounds.max())},
     }
 
 
-def inspect_mesh(input_path: str) -> dict:
+def inspect_mesh(input_path: str) -> dict[str, object]:
     path = validate_input_path(input_path)
     return {"input_path": str(path), **_metadata(_load_mesh(path))}

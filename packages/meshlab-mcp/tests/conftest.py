@@ -36,6 +36,12 @@ f 1 4 2
 f 1 3 4
 """
 
+VERTEX_ONLY_OBJ = """\
+v 0 0 0
+v 1 0 0
+v 0 1 0
+"""
+
 
 @pytest.fixture
 def cube_path(tmp_path: Path) -> Path:
@@ -48,4 +54,11 @@ def cube_path(tmp_path: Path) -> Path:
 def open_tetra_path(tmp_path: Path) -> Path:
     path = tmp_path / "open_tetra.obj"
     path.write_text(OPEN_TETRA_OBJ, encoding="ascii")
+    return path
+
+
+@pytest.fixture
+def vertex_only_path(tmp_path: Path) -> Path:
+    path = tmp_path / "vertex_only.obj"
+    path.write_text(VERTEX_ONLY_OBJ, encoding="ascii")
     return path
