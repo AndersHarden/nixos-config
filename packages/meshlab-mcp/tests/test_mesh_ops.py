@@ -122,11 +122,52 @@ def test_export_mesh_converts_obj_to_stl(cube_path: Path, tmp_path: Path) -> Non
 @pytest.mark.parametrize(
     ("operation", "parameters", "message"),
     [
-        ("repair_holes", {"max_hole_size": 0}, "max_hole_size"),
-        ("simplify_mesh", {"target_faces": 3}, "target_faces"),
-        ("remesh_mesh", {"target_edge_length": 0}, "target_edge_length"),
-        ("smooth_mesh", {"method": "unknown"}, "method"),
-        ("smooth_mesh", {"iterations": 101}, "iterations"),
+        (
+            "repair_holes",
+            {"max_hole_size": 0},
+            "max_hole_size must be between 1 and 100000",
+        ),
+        (
+            "repair_holes",
+            {"max_hole_size": 100001},
+            "max_hole_size must be between 1 and 100000",
+        ),
+        ("simplify_mesh", {"target_faces": 3}, "target_faces must be at least 4"),
+        (
+            "simplify_mesh",
+            {"target_faces": 12},
+            "target_faces must be lower than the source face count",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0},
+            "target_edge_length must be greater than 0",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": 0},
+            "iterations must be between 1 and 20",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": 21},
+            "iterations must be between 1 and 20",
+        ),
+        (
+            "smooth_mesh",
+            {"method": "unknown"},
+            "method must be 'taubin' or 'laplacian'",
+        ),
+        (
+            "smooth_mesh",
+            {"iterations": 0},
+            "iterations must be between 1 and 100",
+        ),
+        (
+            "smooth_mesh",
+            {"iterations": 101},
+            "iterations must be between 1 and 100",
+        ),
     ],
 )
 def test_mesh_transform_rejects_invalid_parameters(
@@ -136,9 +177,22 @@ def test_mesh_transform_rejects_invalid_parameters(
     parameters: dict[str, object],
     message: str,
 ) -> None:
-    output_path = tmp_path / f"invalid-{message}.ply"
+    output_path = tmp_path / f"invalid-{operation}.ply"
 
-    with pytest.raises(MeshOperationError, match=message):
+    with pytest.raises(MeshOperationError) as error:
         getattr(mesh_ops, operation)(str(cube_path), str(output_path), **parameters)
 
+    assert message in str(error.value)
     assert not output_path.exists()
+
+
+def test_remesh_mesh_defaults_to_five_iterations(
+    cube_path: Path, tmp_path: Path
+) -> None:
+    output_path = tmp_path / "remeshed-default.ply"
+
+    result = mesh_ops.remesh_mesh(
+        str(cube_path), str(output_path), target_edge_length=0.75
+    )
+
+    assert result["parameters"]["iterations"] == 5

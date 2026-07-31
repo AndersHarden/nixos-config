@@ -195,7 +195,7 @@ def remesh_mesh(
     input_path: str,
     output_path: str,
     target_edge_length: float,
-    iterations: int = 10,
+    iterations: int = 5,
 ) -> dict[str, object]:
     if target_edge_length <= 0:
         raise MeshOperationError("target_edge_length must be greater than 0")
