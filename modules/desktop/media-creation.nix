@@ -3,6 +3,7 @@
 { config, pkgs, ... }:
 
 let
+  cloudcompareMcp = pkgs.callPackage ../../packages/cloudcompare-mcp { };
   meshlabMcp = pkgs.callPackage ../../packages/meshlab-mcp { };
 in
 {
@@ -14,6 +15,7 @@ in
     meshlab
     meshlabMcp
     cloudcompare
+    cloudcompareMcp
     f3d
 
     # raster
