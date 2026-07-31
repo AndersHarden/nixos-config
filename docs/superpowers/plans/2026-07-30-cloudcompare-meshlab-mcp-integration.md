@@ -15,6 +15,7 @@
 - Create `packages/meshlab-mcp/mesh_ops.py`: path validation, metadata extraction, atomic output handling, and constrained PyMeshLab operations.
 - Create `packages/meshlab-mcp/server.py`: FastMCP server and the eight public tools.
 - Create `packages/meshlab-mcp/default.nix`: Nix wrapper containing Python, MCP SDK, and PyMeshLab.
+- Create `packages/cloudcompare-mcp/default.nix`: pinned upstream source and flake-locked Python runtime wrapper.
 - Create `packages/meshlab-mcp/tests/conftest.py`: reusable closed and open mesh fixtures.
 - Create `packages/meshlab-mcp/tests/test_mesh_ops.py`: unit and geometry integration tests.
 - Create `packages/meshlab-mcp/tests/test_server.py`: MCP tool registration and `stdio` protocol tests.
@@ -787,13 +788,13 @@ Expected: activation completes without evaluation or service errors.
 
 ```bash
 command -v CloudCompare
-CloudCompare --version
+nix eval --raw .#nixosConfigurations.laptop-intel.pkgs.cloudcompare.version
 command -v meshlab
 meshlab --version
 command -v meshlab-mcp
 ```
 
-Expected: all commands resolve under `/run/current-system/sw/bin`; CloudCompare reports 2.13.x and MeshLab reports 2025.07.
+Expected: all commands resolve under `/run/current-system/sw/bin`; Nix package metadata reports CloudCompare 2.13.x and MeshLab reports 2025.07. Do not use `CloudCompare --version`: this package does not support the flag and exits nonzero.
 
 - [ ] **Step 3: Verify Bitwarden removal**
 
@@ -863,19 +864,54 @@ Confirm `flake.lock` remains modified and unstaged.
 ### Task 6: CloudCompare MCP and Global OpenCode Configuration
 
 **Files:**
+- Create: `packages/cloudcompare-mcp/default.nix`
+- Modify: `modules/desktop/media-creation.nix`
 - Modify: `/home/anders/.config/opencode/opencode.json`
 
-- [ ] **Step 1: Smoke-test the pinned CloudCompare MCP revision**
+- [ ] **Step 1: Add the declarative CloudCompare MCP wrapper**
 
-Use revision `22b5232fd14e8ca02105aa47dcac40ad248a705c`:
+Create `packages/cloudcompare-mcp/default.nix`:
 
-Upstream declares `mcp>=1.3.0` but uses APIs incompatible with MCP 2.0.0, so every `uvx` invocation must constrain the dependency to `mcp<2`. This OpenCode version resolves local MCP process variables from `environment`.
-
-```bash
-uvx --with 'mcp<2' --from 'git+https://github.com/yufeioptimal/cloudcompare-mcp.git@22b5232fd14e8ca02105aa47dcac40ad248a705c' cloudcompare-mcp
+```nix
+{ fetchFromGitHub, python313, writeShellApplication }:
+let
+  src = fetchFromGitHub {
+    owner = "yufeioptimal";
+    repo = "cloudcompare-mcp";
+    rev = "22b5232fd14e8ca02105aa47dcac40ad248a705c";
+    hash = "sha256-xeAy0OEc18kOCEobmOImEL7hg+VDMxGgbIGufUrCSOs=";
+  };
+  pythonEnv = python313.withPackages (ps: with ps; [
+    mcp
+    numpy
+    matplotlib
+    laspy
+    lazrs
+    plyfile
+  ]);
+in
+writeShellApplication {
+  name = "cloudcompare-mcp";
+  runtimeInputs = [ pythonEnv ];
+  text = ''
+    exec ${pythonEnv}/bin/python ${src}/src/cloudcompare_mcp/server.py "$@"
+  '';
+}
 ```
 
-Run a client against the pinned process:
+- [ ] **Step 2: Install the wrapper beside CloudCompare**
+
+Add `cloudcompareMcp = pkgs.callPackage ../../packages/cloudcompare-mcp { };` in the existing `let` block in `modules/desktop/media-creation.nix`. Add `cloudcompareMcp` immediately after the existing `cloudcompare` package and preserve every other byte.
+
+- [ ] **Step 3: Build and smoke-test the wrapper directly**
+
+Build the package with the flake's pinned nixpkgs:
+
+```bash
+export CLOUDCOMPARE_MCP="$(nix build --no-link --print-out-paths --impure --expr 'let pkgs = (builtins.getFlake (toString ./.)).inputs.nixpkgs.legacyPackages.x86_64-linux; in pkgs.callPackage ./packages/cloudcompare-mcp { }')"
+```
+
+Run a real MCP client with `CLOUDCOMPARE_PATH=/run/current-system/sw/bin/CloudCompare` and a PLY fixture:
 
 ```bash
 nix shell --impure --expr 'with import <nixpkgs> {}; python313.withPackages (ps: with ps; [ mcp ])' --command python3 - <<'PY'
@@ -888,83 +924,101 @@ from pathlib import Path
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-REVISION = "22b5232fd14e8ca02105aa47dcac40ad248a705c"
+SERVER = os.environ["CLOUDCOMPARE_MCP"] + "/bin/cloudcompare-mcp"
+PLY = """ply
+format ascii 1.0
+element vertex 4
+property float x
+property float y
+property float z
+end_header
+0 0 0
+1 0 0
+0 1 0
+0 0 1
+"""
 
 async def main() -> None:
-    with tempfile.TemporaryDirectory() as directory:
-        root = Path(directory)
-        source = root / "points.xyz"
-        output = root / "sampled.ply"
-        source.write_text("0 0 0\n1 0 0\n0 1 1\n", encoding="ascii")
-        params = StdioServerParameters(
-            command="uvx",
-            args=["--with", "mcp<2", "--from", f"git+https://github.com/yufeioptimal/cloudcompare-mcp.git@{REVISION}", "cloudcompare-mcp"],
-            env={**os.environ, "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"},
-        )
-        async with stdio_client(params) as (read_stream, write_stream):
-            async with ClientSession(read_stream, write_stream) as session:
-                await session.initialize()
-                tools = await session.list_tools()
-                assert "read_cloud_metadata" in {tool.name for tool in tools.tools}
-                info = await session.call_tool("get_cloudcompare_info", {})
-                metadata = await session.call_tool("read_cloud_metadata", {"file_path": str(source)})
-                sampled = await session.call_tool(
-                    "subsample",
-                    {
-                        "input_path": str(source),
-                        "output_path": str(output),
-                        "method": "RANDOM",
-                        "parameter": 2,
-                    },
-                )
-        assert not info.isError and not metadata.isError and not sampled.isError
-        metadata_text = "".join(item.text for item in metadata.content if item.type == "text")
-        assert json.loads(metadata_text)["point_count"] == 3
-        assert output.is_file()
+    async with asyncio.timeout(120):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "points.ply"
+            output = root / "sampled.ply"
+            source.write_text(PLY, encoding="ascii")
+            params = StdioServerParameters(
+                command=SERVER,
+                env={**os.environ, "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"},
+            )
+            async with stdio_client(params) as (read_stream, write_stream):
+                async with ClientSession(read_stream, write_stream) as session:
+                    await session.initialize()
+                    tools = await session.list_tools()
+                    assert len(tools.tools) == 14
+                    metadata = await session.call_tool("read_cloud_metadata", {"file_path": str(source)})
+                    sampled = await session.call_tool("subsample", {
+                        "input_path": str(source), "output_path": str(output),
+                        "method": "RANDOM", "parameter": 2,
+                    })
+                    output_metadata = await session.call_tool("read_cloud_metadata", {"file_path": str(output)})
+            assert not metadata.isError and not sampled.isError and not output_metadata.isError
+            text = lambda result: "".join(item.text for item in result.content if item.type == "text")
+            assert json.loads(text(metadata))["point_count"] == 4
+            assert json.loads(text(sampled))["success"] is True
+            assert json.loads(text(output_metadata))["point_count"] == 2
+            assert output.is_file() and output.read_bytes()[:3].lower() == b"ply"
 
 asyncio.run(main())
 PY
 ```
 
-Expected: the server identifies `/run/current-system/sw/bin/CloudCompare`, reports three points, and creates a readable PLY output.
+Expected: initialization and all calls succeed, 14 tools are listed, and the output is a readable two-point PLY. `get_cloudcompare_info` may be used to verify the executable path but not the package version. Verify CloudCompare version `2.13.2` with `nix eval --raw .#nixosConfigurations.laptop-intel.pkgs.cloudcompare.version`; `CloudCompare --version` is unsupported and exits nonzero.
 
-- [ ] **Step 2: Add both global MCP entries**
+- [ ] **Step 4: Build and activate the laptop configuration**
 
-Preserve every existing key in `/home/anders/.config/opencode/opencode.json` and add under `mcp`:
+```bash
+nix build .#nixosConfigurations.laptop-intel.config.system.build.toplevel --no-link
+sudo nixos-rebuild switch --flake .#laptop-intel
+test -x /run/current-system/sw/bin/cloudcompare-mcp
+```
+
+Expected: build and activation exit 0, and the installed wrapper is executable. Repeat Step 3's smoke with `SERVER = "/run/current-system/sw/bin/cloudcompare-mcp"` to verify the active profile headlessly.
+
+- [ ] **Step 5: Replace the global MCP command and deny the raw tool**
+
+Preserve every existing key in `/home/anders/.config/opencode/opencode.json`. Replace only the `cloudcompare.command` array and add the top-level permission:
+
+Under the existing top-level `mcp` object, replace the CloudCompare entry with:
 
 ```json
 "cloudcompare": {
   "type": "local",
-  "command": [
-    "uvx",
-    "--with",
-    "mcp<2",
-    "--from",
-    "git+https://github.com/yufeioptimal/cloudcompare-mcp.git@22b5232fd14e8ca02105aa47dcac40ad248a705c",
-    "cloudcompare-mcp"
-  ],
+  "command": ["/run/current-system/sw/bin/cloudcompare-mcp"],
   "enabled": true,
   "timeout": 120000,
   "environment": {
     "CLOUDCOMPARE_PATH": "/run/current-system/sw/bin/CloudCompare"
   }
-},
-"meshlab": {
-  "type": "local",
-  "command": ["/run/current-system/sw/bin/meshlab-mcp"],
-  "enabled": true,
-  "timeout": 120000
 }
 ```
 
-- [ ] **Step 3: Validate the resolved OpenCode configuration**
+Add this separate top-level key beside `mcp`:
+
+```json
+"permission": {
+  "cloudcompare_run_cloudcompare_command": "deny"
+}
+```
+
+OpenCode exposes MCP tools as `<server>_<tool>`, making `cloudcompare_run_cloudcompare_command` the exact permission key.
+
+- [ ] **Step 6: Validate the resolved OpenCode configuration and permission**
 
 ```bash
 opencode debug config
 opencode mcp list
 ```
 
-Expected: config parsing succeeds and both `cloudcompare` and `meshlab` appear. A currently running OpenCode session may not expose the new tools until restart.
+Expected: config parsing succeeds, the resolved command is `/run/current-system/sw/bin/cloudcompare-mcp`, the resolved top-level permission contains `"cloudcompare_run_cloudcompare_command": "deny"`, and all six MCP servers are connected. A currently running OpenCode session may not expose the new command or permission until restart.
 
 ### Task 7: Route Point-Cloud Analysis to CloudCompare
 
@@ -998,7 +1052,7 @@ Use the global `cloudcompare` MCP server for all supported point-cloud operation
 
 | Need | MCP tool |
 | --- | --- |
-| Installation/version check | `get_cloudcompare_info` |
+| Executable path check | `get_cloudcompare_info` |
 | Metadata | `read_cloud_metadata` or `load_cloud_info` |
 | Visual inspection | `visualize_cloud` |
 | Density reduction | `subsample` |
@@ -1023,7 +1077,7 @@ Use this exact mapping in the section:
 
 | Need | MCP tool |
 | --- | --- |
-| Installation/version check | `get_cloudcompare_info` |
+| Executable path check | `get_cloudcompare_info` |
 | Metadata | `read_cloud_metadata` or `load_cloud_info` |
 | Visual inspection | `visualize_cloud` |
 | Density reduction | `subsample` |
@@ -1141,14 +1195,16 @@ Expected: both commands exit 0 without changing `flake.lock` beyond its pre-exis
 - [ ] **Step 3: Verify active programs and MCP configuration**
 
 ```bash
-CloudCompare --version
+nix eval --raw .#nixosConfigurations.laptop-intel.pkgs.cloudcompare.version
+command -v CloudCompare
+command -v cloudcompare-mcp
 meshlab --version
 command -v meshlab-mcp
 opencode debug config
 opencode mcp list
 ```
 
-Expected: both applications and MeshLab MCP resolve; OpenCode reports both new servers.
+Expected: Nix metadata reports CloudCompare 2.13.x, both applications and MCP wrappers resolve, OpenCode reports both new servers, and the resolved permission denies `cloudcompare_run_cloudcompare_command`. Do not use `CloudCompare --version` as version evidence.
 
 - [ ] **Step 4: Inspect repository state before the final commit**
 

@@ -11,7 +11,7 @@ The same change removes Bitwarden Desktop from the declarative NixOS desktop pac
 - Keep the existing `cloudcompare` and `meshlab` declarations in `modules/desktop/media-creation.nix`.
 - Remove only `bitwarden-desktop` from `modules/desktop/browsers.nix`.
 - Add global CloudCompare and MeshLab MCP entries to `~/.config/opencode/opencode.json`.
-- Run CloudCompare MCP from a pinned Git commit.
+- Package CloudCompare MCP declaratively from a pinned Git commit with flake-locked Python dependencies.
 - Create a standards-compliant PyMeshLab MCP package under `packages/meshlab-mcp` in the NixOS repository.
 - Update `pointcloud-analysis/SKILL.md` and `mesh-repair/SKILL.md` with explicit application and MCP responsibilities.
 - Build and activate `.#laptop-intel`.
@@ -27,7 +27,9 @@ The existing uncommitted `flake.lock` change is not part of this work and must r
 
 ### CloudCompare MCP
 
-OpenCode starts the community CloudCompare MCP server as a local `stdio` server through `uvx`. The source is pinned to a reviewed Git commit rather than an unversioned branch or unavailable PyPI package. `CLOUDCOMPARE_PATH` points to the NixOS-managed executable.
+`packages/cloudcompare-mcp/default.nix` fetches the community CloudCompare MCP server at commit `22b5232fd14e8ca02105aa47dcac40ad248a705c` with verified source hash `sha256-xeAy0OEc18kOCEobmOImEL7hg+VDMxGgbIGufUrCSOs=`. A `python313.withPackages` environment supplies the flake-locked `mcp`, `numpy`, `matplotlib`, `laspy`, `lazrs`, and `plyfile` packages. The installed `cloudcompare-mcp` wrapper executes the fetched `src/cloudcompare_mcp/server.py` directly, so startup does not resolve or download code at runtime.
+
+OpenCode starts `/run/current-system/sw/bin/cloudcompare-mcp` as a local `stdio` server. `CLOUDCOMPARE_PATH` points to `/run/current-system/sw/bin/CloudCompare`. The unrestricted `cloudcompare_run_cloudcompare_command` tool is denied through the top-level OpenCode permission configuration; named CloudCompare tools remain available.
 
 The server owns point-cloud operations:
 
@@ -89,7 +91,7 @@ This division removes the current overlap in point-cloud cleanup while preservin
 - Failed processing or validation removes temporary output and preserves prior valid artifacts.
 - PyMeshLab and CloudCompare failures return the tool name, affected file, relevant parameters, and a concise cause.
 - No operation silently falls back to a broader or destructive filter.
-- The CloudCompare raw-command tool is not part of normal skill workflows.
+- The CloudCompare raw-command tool is denied globally by its exact OpenCode tool name, `cloudcompare_run_cloudcompare_command`.
 
 ## Testing
 
@@ -109,17 +111,17 @@ Before editing either skill, run baseline subagent scenarios without the propose
 
 ### CloudCompare and OpenCode
 
-- Confirm the NixOS-managed CloudCompare executable and version.
-- Start the pinned MCP server and verify initialization and `tools/list`.
+- Confirm CloudCompare package version `2.13.2` from flake package metadata or its Nix store path. `CloudCompare --version` is unsupported in this package and exits nonzero; `get_cloudcompare_info` may confirm the executable path but is not version evidence.
+- Build and start the declaratively packaged MCP server and verify initialization and `tools/list`.
 - Exercise at least one native metadata tool and one CloudCompare-backed operation on a small fixture.
-- Validate the merged OpenCode configuration before restart.
+- Validate that the merged OpenCode configuration starts the installed wrapper and resolves `cloudcompare_run_cloudcompare_command` to `deny` before restart.
 
 ### NixOS
 
 - Evaluate the flake without writing the lock file.
 - Build `.#nixosConfigurations.laptop-intel.config.system.build.toplevel`.
 - Activate with `nixos-rebuild switch --flake .#laptop-intel`.
-- Confirm `cloudcompare` is available and `bitwarden` is absent from the active profile.
+- Confirm `CloudCompare` and `cloudcompare-mcp` are available and `bitwarden` is absent from the active profile.
 
 ## Version Control and Deployment
 
@@ -127,5 +129,5 @@ Before editing either skill, run baseline subagent scenarios without the propose
 - Never stage or alter the pre-existing `flake.lock` modification.
 - Commit the design separately from implementation.
 - Commit the NixOS package removal after successful build and activation, then push intended commits to `origin/main`.
-- The global OpenCode configuration and files under `/home/anders/Projekt/FreeCAD/skills` are outside the NixOS Git repository and are not included in its commits. The MeshLab MCP source and Nix wrapper are versioned in the NixOS repository.
+- The global OpenCode configuration and files under `/home/anders/Projekt/FreeCAD/skills` are outside the NixOS Git repository and are not included in its commits. The CloudCompare and MeshLab MCP wrappers are versioned in the NixOS repository.
 - Restart OpenCode after changing its global configuration because MCP configuration is loaded only at startup.
