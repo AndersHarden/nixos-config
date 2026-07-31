@@ -4,7 +4,7 @@ import secrets
 import stat
 from numbers import Real
 from pathlib import Path
-from typing import Callable, Iterable, Literal, TypedDict
+from typing import Callable, Iterable, Literal, NotRequired, TypedDict
 
 import pymeshlab
 
@@ -41,6 +41,7 @@ class MeshOperationResult(TypedDict):
     parameters: dict[str, object]
     before: MeshMetadata
     after: MeshMetadata
+    warnings: NotRequired[list[str]]
 
 
 class MeshOperationError(ValueError):
@@ -162,6 +163,47 @@ def _verify_directory_identity(path: Path, directory_fd: int) -> None:
             os.close(verification_fd)
 
 
+def _cleanup_staging(
+    output_directory_fd: int,
+    staging_directory_fd: int | None,
+    staging_name: str | None,
+    temporary_name: str | None,
+    staging_identity: tuple[int, int] | None,
+) -> list[str]:
+    warnings: list[str] = []
+    if staging_directory_fd is not None and temporary_name is not None:
+        try:
+            os.unlink(temporary_name, dir_fd=staging_directory_fd)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            warnings.append(f"Failed to remove staging mesh: {error}")
+    if staging_directory_fd is not None:
+        try:
+            os.close(staging_directory_fd)
+        except OSError as error:
+            warnings.append(f"Failed to close staging directory: {error}")
+    if staging_name is not None:
+        try:
+            current = os.stat(
+                staging_name,
+                dir_fd=output_directory_fd,
+                follow_symlinks=False,
+            )
+            if staging_identity is not None and (
+                current.st_dev,
+                current.st_ino,
+            ) != staging_identity:
+                warnings.append("Staging directory identity changed during cleanup")
+            else:
+                os.rmdir(staging_name, dir_fd=output_directory_fd)
+        except FileNotFoundError:
+            pass
+        except OSError as error:
+            warnings.append(f"Failed to remove staging directory: {error}")
+    return warnings
+
+
 def _transform(
     operation: str,
     input_path: str,
@@ -171,48 +213,88 @@ def _transform(
 ) -> MeshOperationResult:
     source = Path(input_path)
     destination = Path(output_path)
-    directory_fd: int | None = None
+    output_directory_fd: int | None = None
+    staging_directory_fd: int | None = None
+    staging_name: str | None = None
+    staging_identity: tuple[int, int] | None = None
     temporary_name: str | None = None
-    failed = False
+    committed = False
     try:
         source = validate_input_path(input_path)
         destination = validate_output_path(source, destination)
-        directory_fd = _open_directory_no_symlinks(destination.parent)
+        output_directory_fd = _open_directory_no_symlinks(destination.parent)
         mesh_set = _load_mesh(source)
         before = _metadata(mesh_set)
         action(mesh_set)
 
-        temporary_name = (
-            f".{destination.stem}-{secrets.token_hex(8)}{destination.suffix}"
+        staging_name = (
+            f".{destination.stem}-staging-{secrets.token_hex(8)}"
         )
+        os.mkdir(staging_name, mode=0o700, dir_fd=output_directory_fd)
+        staging_directory_fd = os.open(
+            staging_name,
+            os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+            dir_fd=output_directory_fd,
+        )
+        os.fchmod(staging_directory_fd, 0o700)
+        staging_stat = os.fstat(staging_directory_fd)
+        staging_identity = (staging_stat.st_dev, staging_stat.st_ino)
+
+        # 0700 hides the named temp from other users; a same-UID attacker can
+        # still race names, so inode and file type are checked before commit.
+        temporary_name = f"mesh-{secrets.token_hex(8)}{destination.suffix}"
         temporary_fd = os.open(
             temporary_name,
             os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
             0o600,
-            dir_fd=directory_fd,
+            dir_fd=staging_directory_fd,
         )
+        temporary_stat = os.fstat(temporary_fd)
+        temporary_identity = (temporary_stat.st_dev, temporary_stat.st_ino)
         os.close(temporary_fd)
-        temporary_path = Path(f"/proc/self/fd/{directory_fd}/{temporary_name}")
+        temporary_path = Path(
+            f"/proc/self/fd/{staging_directory_fd}/{temporary_name}"
+        )
         mesh_set.save_current_mesh(str(temporary_path))
         after = _metadata(_load_mesh(temporary_path))
         if after["vertices"] == 0 or after["faces"] == 0:
             raise MeshOperationError("Operation produced an empty mesh")
-        _verify_directory_identity(destination.parent, directory_fd)
+        saved_stat = os.stat(
+            temporary_name,
+            dir_fd=staging_directory_fd,
+            follow_symlinks=False,
+        )
+        if (
+            not stat.S_ISREG(saved_stat.st_mode)
+            or (saved_stat.st_dev, saved_stat.st_ino) != temporary_identity
+        ):
+            raise MeshOperationError("Staging mesh identity changed")
+        _verify_directory_identity(destination.parent, output_directory_fd)
         try:
             os.link(
                 temporary_name,
                 destination.name,
-                src_dir_fd=directory_fd,
-                dst_dir_fd=directory_fd,
+                src_dir_fd=staging_directory_fd,
+                dst_dir_fd=output_directory_fd,
                 follow_symlinks=False,
             )
         except FileExistsError as error:
             raise MeshOperationError(
                 f"Output path already exists: {destination}"
             ) from error
-        os.unlink(temporary_name, dir_fd=directory_fd)
-        temporary_name = None
-        return {
+        try:
+            _verify_directory_identity(destination.parent, output_directory_fd)
+        except Exception as identity_error:
+            try:
+                os.unlink(destination.name, dir_fd=output_directory_fd)
+            except OSError as rollback_error:
+                raise MeshOperationError(
+                    "Output directory identity changed and rollback failed: "
+                    f"{rollback_error}"
+                ) from identity_error
+            raise
+        committed = True
+        result: MeshOperationResult = {
             "operation": operation,
             "input_path": str(source),
             "output_path": str(destination),
@@ -220,27 +302,45 @@ def _transform(
             "before": before,
             "after": after,
         }
+        warnings = _cleanup_staging(
+            output_directory_fd,
+            staging_directory_fd,
+            staging_name,
+            temporary_name,
+            staging_identity,
+        )
+        staging_directory_fd = None
+        staging_name = None
+        temporary_name = None
+        if warnings:
+            result["warnings"] = warnings
+        try:
+            os.close(output_directory_fd)
+        except OSError as error:
+            result.setdefault("warnings", []).append(
+                f"Failed to close output directory: {error}"
+            )
+        output_directory_fd = None
+        return result
     except Exception as error:
-        failed = True
         raise MeshOperationError(
             f"{operation} failed for source '{source}', destination "
             f"'{destination}', parameters={parameters!r}: {error}"
         ) from error
     finally:
-        if temporary_name is not None and directory_fd is not None:
+        if not committed and output_directory_fd is not None:
+            _cleanup_staging(
+                output_directory_fd,
+                staging_directory_fd,
+                staging_name,
+                temporary_name,
+                staging_identity,
+            )
+        if output_directory_fd is not None:
             try:
-                os.unlink(temporary_name, dir_fd=directory_fd)
-            except FileNotFoundError:
+                os.close(output_directory_fd)
+            except OSError:
                 pass
-            except OSError:
-                if not failed:
-                    raise
-        if directory_fd is not None:
-            try:
-                os.close(directory_fd)
-            except OSError:
-                if not failed:
-                    raise
 
 
 def clean_mesh(input_path: str, output_path: str) -> MeshOperationResult:

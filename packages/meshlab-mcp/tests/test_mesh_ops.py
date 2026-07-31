@@ -454,3 +454,104 @@ def test_mesh_operation_annotations_expose_result_schema() -> None:
         "taubin",
         "laplacian",
     )
+
+
+def test_private_staging_prevents_public_temp_symlink_substitution(
+    cube_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output_path = tmp_path / "output.ply"
+    external_target = tmp_path / "external.ply"
+    external_target.write_bytes(b"external-data")
+    real_save = pymeshlab.MeshSet.save_current_mesh
+
+    def substitute_public_temp(
+        mesh_set: pymeshlab.MeshSet, path: str, **kwargs: object
+    ) -> None:
+        for candidate in tmp_path.iterdir():
+            if candidate.name.startswith(".output-") and candidate.is_file():
+                candidate.unlink()
+                candidate.symlink_to(external_target)
+        real_save(mesh_set, path, **kwargs)
+
+    monkeypatch.setattr(
+        pymeshlab.MeshSet, "save_current_mesh", substitute_public_temp
+    )
+
+    result = mesh_ops.clean_mesh(str(cube_path), str(output_path))
+
+    assert result["operation"] == "clean_mesh"
+    assert external_target.read_bytes() == b"external-data"
+    assert output_path.is_file()
+    assert not output_path.is_symlink()
+    assert not any(
+        candidate.name.startswith(".output-staging-")
+        for candidate in tmp_path.iterdir()
+    )
+
+
+def test_transform_rolls_back_if_parent_changes_during_link(
+    cube_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output_parent = tmp_path / "output"
+    output_parent.mkdir()
+    moved_parent = tmp_path / "moved"
+    attacker_parent = tmp_path / "attacker"
+    attacker_parent.mkdir()
+    output_path = output_parent / "result.ply"
+    real_link = os.link
+
+    def swap_parent_then_link(
+        source: str,
+        destination: str,
+        *,
+        src_dir_fd: int,
+        dst_dir_fd: int,
+        follow_symlinks: bool,
+    ) -> None:
+        output_parent.rename(moved_parent)
+        output_parent.symlink_to(attacker_parent, target_is_directory=True)
+        real_link(
+            source,
+            destination,
+            src_dir_fd=src_dir_fd,
+            dst_dir_fd=dst_dir_fd,
+            follow_symlinks=follow_symlinks,
+        )
+
+    monkeypatch.setattr(os, "link", swap_parent_then_link)
+
+    with pytest.raises(MeshOperationError, match="directory identity changed"):
+        mesh_ops.clean_mesh(str(cube_path), str(output_path))
+
+    assert not (moved_parent / "result.ply").exists()
+    assert not (attacker_parent / "result.ply").exists()
+
+
+def test_cleanup_failure_after_commit_returns_warning(
+    cube_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output_path = tmp_path / "output.ply"
+    real_link = os.link
+    real_unlink = os.unlink
+    committed = False
+
+    def track_link(*args: object, **kwargs: object) -> None:
+        nonlocal committed
+        real_link(*args, **kwargs)
+        committed = True
+
+    def fail_post_commit_cleanup(
+        path: str, *, dir_fd: int | None = None
+    ) -> None:
+        if committed and path != output_path.name:
+            raise OSError("post-commit cleanup failed")
+        real_unlink(path, dir_fd=dir_fd)
+
+    monkeypatch.setattr(os, "link", track_link)
+    monkeypatch.setattr(os, "unlink", fail_post_commit_cleanup)
+
+    result = mesh_ops.clean_mesh(str(cube_path), str(output_path))
+
+    assert output_path.is_file()
+    assert any("post-commit cleanup failed" in warning for warning in result["warnings"])
+    assert "warnings" in mesh_ops.MeshOperationResult.__optional_keys__
