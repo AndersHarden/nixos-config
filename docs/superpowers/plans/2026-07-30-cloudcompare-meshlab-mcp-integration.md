@@ -721,7 +721,7 @@ writeShellApplication {
   name = "meshlab-mcp";
   runtimeInputs = [ pythonEnv ];
   text = ''
-    exec ${pythonEnv}/bin/python ${./server.py} "$@"
+    exec ${pythonEnv}/bin/python ${./.}/server.py "$@"
   '';
 }
 ```
