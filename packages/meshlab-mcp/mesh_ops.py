@@ -1,12 +1,46 @@
+import math
 import os
-import tempfile
+import secrets
+import stat
+from numbers import Real
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Literal, TypedDict
 
 import pymeshlab
 
 
 SUPPORTED_EXTENSIONS = {".obj", ".off", ".ply", ".stl"}
+
+
+class MeshBounds(TypedDict):
+    min: list[float]
+    max: list[float]
+
+
+class MeshMetadata(TypedDict):
+    vertices: int
+    faces: int
+    connected_components: int
+    holes: int
+    boundary_edges: int
+    is_two_manifold: bool
+    surface_area: float
+    volume: float
+    volume_available: bool
+    bounds: MeshBounds
+
+
+class MeshInspection(MeshMetadata):
+    input_path: str
+
+
+class MeshOperationResult(TypedDict):
+    operation: str
+    input_path: str
+    output_path: str
+    parameters: dict[str, object]
+    before: MeshMetadata
+    after: MeshMetadata
 
 
 class MeshOperationError(ValueError):
@@ -29,7 +63,7 @@ def validate_output_path(input_path: Path, output_path: Path) -> Path:
         raise MeshOperationError("Output path must be absolute")
     if input_path == output_path:
         raise MeshOperationError("Input and output paths must be different")
-    if output_path.exists():
+    if output_path.exists() or output_path.is_symlink():
         raise MeshOperationError(f"Output path already exists: {output_path}")
     if not output_path.parent.is_dir():
         raise MeshOperationError(
@@ -57,7 +91,7 @@ def _vector(value: Iterable[float]) -> list[float]:
     return [float(component) for component in value]
 
 
-def _metadata(mesh_set: pymeshlab.MeshSet) -> dict[str, object]:
+def _metadata(mesh_set: pymeshlab.MeshSet) -> MeshMetadata:
     topological = mesh_set.get_topological_measures()
     geometric = mesh_set.get_geometric_measures()
     bounds = geometric["bbox"]
@@ -75,9 +109,57 @@ def _metadata(mesh_set: pymeshlab.MeshSet) -> dict[str, object]:
     }
 
 
-def inspect_mesh(input_path: str) -> dict[str, object]:
+def inspect_mesh(input_path: str) -> MeshInspection:
     path = validate_input_path(input_path)
     return {"input_path": str(path), **_metadata(_load_mesh(path))}
+
+
+def _open_directory_no_symlinks(path: Path) -> int:
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    directory_fd = os.open("/", flags)
+    try:
+        for component in path.parts[1:]:
+            try:
+                next_fd = os.open(component, flags, dir_fd=directory_fd)
+            except OSError as error:
+                try:
+                    component_stat = os.stat(
+                        component, dir_fd=directory_fd, follow_symlinks=False
+                    )
+                except OSError:
+                    component_stat = None
+                if component_stat is not None and stat.S_ISLNK(component_stat.st_mode):
+                    raise MeshOperationError(
+                        f"Output parent contains symlink component: {component}"
+                    ) from error
+                raise MeshOperationError(
+                    f"Cannot securely open output parent component: {component}"
+                ) from error
+            os.close(directory_fd)
+            directory_fd = next_fd
+        return directory_fd
+    except Exception:
+        os.close(directory_fd)
+        raise
+
+
+def _verify_directory_identity(path: Path, directory_fd: int) -> None:
+    verification_fd: int | None = None
+    try:
+        verification_fd = _open_directory_no_symlinks(path)
+        opened = os.fstat(directory_fd)
+        current = os.fstat(verification_fd)
+        if (opened.st_dev, opened.st_ino) != (current.st_dev, current.st_ino):
+            raise MeshOperationError("Output directory identity changed")
+    except Exception as error:
+        if isinstance(error, MeshOperationError) and str(error) == (
+            "Output directory identity changed"
+        ):
+            raise
+        raise MeshOperationError("Output directory identity changed") from error
+    finally:
+        if verification_fd is not None:
+            os.close(verification_fd)
 
 
 def _transform(
@@ -86,30 +168,50 @@ def _transform(
     output_path: str,
     action: Callable[[pymeshlab.MeshSet], None],
     parameters: dict[str, object],
-) -> dict[str, object]:
+) -> MeshOperationResult:
     source = Path(input_path)
-    temporary_path: Path | None = None
+    destination = Path(output_path)
+    directory_fd: int | None = None
+    temporary_name: str | None = None
+    failed = False
     try:
         source = validate_input_path(input_path)
-        destination = validate_output_path(source, Path(output_path))
+        destination = validate_output_path(source, destination)
+        directory_fd = _open_directory_no_symlinks(destination.parent)
         mesh_set = _load_mesh(source)
         before = _metadata(mesh_set)
         action(mesh_set)
 
-        with tempfile.NamedTemporaryFile(
-            dir=destination.parent,
-            prefix=f".{destination.stem}-",
-            suffix=destination.suffix,
-            delete=False,
-        ) as temporary_file:
-            temporary_path = Path(temporary_file.name)
-
+        temporary_name = (
+            f".{destination.stem}-{secrets.token_hex(8)}{destination.suffix}"
+        )
+        temporary_fd = os.open(
+            temporary_name,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+            dir_fd=directory_fd,
+        )
+        os.close(temporary_fd)
+        temporary_path = Path(f"/proc/self/fd/{directory_fd}/{temporary_name}")
         mesh_set.save_current_mesh(str(temporary_path))
         after = _metadata(_load_mesh(temporary_path))
         if after["vertices"] == 0 or after["faces"] == 0:
             raise MeshOperationError("Operation produced an empty mesh")
-        os.replace(temporary_path, destination)
-        temporary_path = None
+        _verify_directory_identity(destination.parent, directory_fd)
+        try:
+            os.link(
+                temporary_name,
+                destination.name,
+                src_dir_fd=directory_fd,
+                dst_dir_fd=directory_fd,
+                follow_symlinks=False,
+            )
+        except FileExistsError as error:
+            raise MeshOperationError(
+                f"Output path already exists: {destination}"
+            ) from error
+        os.unlink(temporary_name, dir_fd=directory_fd)
+        temporary_name = None
         return {
             "operation": operation,
             "input_path": str(source),
@@ -119,15 +221,29 @@ def _transform(
             "after": after,
         }
     except Exception as error:
+        failed = True
         raise MeshOperationError(
-            f"{operation} failed for source '{source}': {error}"
+            f"{operation} failed for source '{source}', destination "
+            f"'{destination}', parameters={parameters!r}: {error}"
         ) from error
     finally:
-        if temporary_path is not None:
-            temporary_path.unlink(missing_ok=True)
+        if temporary_name is not None and directory_fd is not None:
+            try:
+                os.unlink(temporary_name, dir_fd=directory_fd)
+            except FileNotFoundError:
+                pass
+            except OSError:
+                if not failed:
+                    raise
+        if directory_fd is not None:
+            try:
+                os.close(directory_fd)
+            except OSError:
+                if not failed:
+                    raise
 
 
-def clean_mesh(input_path: str, output_path: str) -> dict[str, object]:
+def clean_mesh(input_path: str, output_path: str) -> MeshOperationResult:
     def clean(mesh_set: pymeshlab.MeshSet) -> None:
         mesh_set.meshing_remove_duplicate_vertices()
         mesh_set.meshing_remove_duplicate_faces()
@@ -139,7 +255,7 @@ def clean_mesh(input_path: str, output_path: str) -> dict[str, object]:
 
 def repair_holes(
     input_path: str, output_path: str, max_hole_size: int = 30
-) -> dict[str, object]:
+) -> MeshOperationResult:
     if not 1 <= max_hole_size <= 100000:
         raise MeshOperationError("max_hole_size must be between 1 and 100000")
 
@@ -155,8 +271,9 @@ def repair_holes(
     )
 
 
-def compute_normals(input_path: str, output_path: str) -> dict[str, object]:
+def compute_normals(input_path: str, output_path: str) -> MeshOperationResult:
     def compute(mesh_set: pymeshlab.MeshSet) -> None:
+        mesh_set.meshing_re_orient_faces_coherently()
         mesh_set.compute_normal_per_face()
         mesh_set.compute_normal_per_vertex()
 
@@ -165,7 +282,7 @@ def compute_normals(input_path: str, output_path: str) -> dict[str, object]:
 
 def simplify_mesh(
     input_path: str, output_path: str, target_faces: int
-) -> dict[str, object]:
+) -> MeshOperationResult:
     if target_faces < 4:
         raise MeshOperationError("target_faces must be at least 4")
 
@@ -196,9 +313,16 @@ def remesh_mesh(
     output_path: str,
     target_edge_length: float,
     iterations: int = 5,
-) -> dict[str, object]:
-    if target_edge_length <= 0:
-        raise MeshOperationError("target_edge_length must be greater than 0")
+) -> MeshOperationResult:
+    if (
+        isinstance(target_edge_length, bool)
+        or not isinstance(target_edge_length, Real)
+        or not math.isfinite(target_edge_length)
+        or target_edge_length <= 0
+    ):
+        raise MeshOperationError(
+            "target_edge_length must be a finite number greater than 0"
+        )
     if not 1 <= iterations <= 20:
         raise MeshOperationError("iterations must be between 1 and 20")
 
@@ -222,9 +346,9 @@ def remesh_mesh(
 def smooth_mesh(
     input_path: str,
     output_path: str,
-    method: str = "taubin",
+    method: Literal["taubin", "laplacian"] = "taubin",
     iterations: int = 10,
-) -> dict[str, object]:
+) -> MeshOperationResult:
     if method not in {"taubin", "laplacian"}:
         raise MeshOperationError("method must be 'taubin' or 'laplacian'")
     if not 1 <= iterations <= 100:
@@ -249,5 +373,5 @@ def smooth_mesh(
     )
 
 
-def export_mesh(input_path: str, output_path: str) -> dict[str, object]:
+def export_mesh(input_path: str, output_path: str) -> MeshOperationResult:
     return _transform("export_mesh", input_path, output_path, lambda mesh_set: None, {})
