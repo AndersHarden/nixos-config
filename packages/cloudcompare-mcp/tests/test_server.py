@@ -3,6 +3,8 @@ import hashlib
 import json
 import math
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Callable
@@ -140,6 +142,35 @@ class FakeUpstream:
         return dispatch[name](arguments)
 
 
+class CloudCompareUpstream(FakeUpstream):
+    def __init__(self, binary: str) -> None:
+        super().__init__(binary)
+
+    def cc_run(self, args: list[str]) -> tuple[int, str, str]:
+        self.cc_calls.append(args)
+        result = subprocess.run(
+            [self.binary, "-SILENT", *args],
+            capture_output=True,
+            text=True,
+            env={**os.environ, "QT_QPA_PLATFORM": "offscreen"},
+        )
+        return result.returncode, result.stdout, result.stderr
+
+    def _load_cloud(self, path: str) -> tuple[list, None, dict]:
+        header = (
+            Path(path)
+            .read_bytes()
+            .split(b"end_header", 1)[0]
+            .decode("ascii", errors="ignore")
+        )
+        properties = {
+            line.split()[-1]
+            for line in header.splitlines()
+            if line.startswith("property ")
+        }
+        return [], None, {"has_normals": {"nx", "ny", "nz"}.issubset(properties)}
+
+
 def call_info(upstream: FakeUpstream) -> dict[str, object]:
     result = asyncio.run(upstream.call_tool("get_cloudcompare_info", {}))
     return json.loads(result[0].text)
@@ -215,7 +246,11 @@ def test_compute_normals_schema_is_closed_and_removes_knn() -> None:
     assert "knn" not in properties
     assert "source coordinate units" in properties["radius"]["description"]
     assert "auto" in properties["radius"]["description"]
-    assert "PLY, LAS, LAZ, or PCD" in properties["output_path"]["description"]
+    output_description = properties["output_path"]["description"]
+    assert "only PLY" in output_description
+    assert "LAS" not in output_description
+    assert "LAZ" not in output_description
+    assert "PCD" not in output_description
     assert tool.inputSchema["required"] == ["input_path", "output_path"]
     assert upstream.TOOLS[1] is original_other_tool
 
@@ -557,8 +592,11 @@ def test_readable_output_with_normals_is_published(
     assert staging_entries(tmp_path) == []
 
 
-@pytest.mark.parametrize("suffix", [".xyz", ".asc", ".txt", ".e57", ".obj", ".bin"])
-def test_output_formats_without_native_normals_verification_are_rejected(
+@pytest.mark.parametrize(
+    "suffix",
+    [".las", ".laz", ".pcd", ".xyz", ".asc", ".txt", ".e57", ".obj", ".bin"],
+)
+def test_all_normals_output_formats_except_ply_are_rejected(
     tmp_path: Path, suffix: str
 ) -> None:
     source = source_file(tmp_path)
@@ -571,6 +609,54 @@ def test_output_formats_without_native_normals_verification_are_rejected(
     assert "unsupported" in result["error"].lower()
     assert upstream.cc_calls == []
     assert not destination.exists()
+
+
+def test_real_cloudcompare_ply_contract_preserves_verifiable_normals(
+    tmp_path: Path,
+) -> None:
+    configured = os.environ.get("CLOUDCOMPARE_PATH")
+    binary = configured if configured and Path(configured).is_file() else None
+    binary = binary or shutil.which("CloudCompare") or shutil.which("cloudcompare")
+    if binary is None:
+        pytest.skip("CloudCompare executable is not available")
+
+    source = tmp_path / "grid.ply"
+    points = [f"{x} {y} {0.001 * ((x + y) % 3)}" for y in range(10) for x in range(10)]
+    source.write_text(
+        "\n".join(
+            [
+                "ply",
+                "format ascii 1.0",
+                f"element vertex {len(points)}",
+                "property float x",
+                "property float y",
+                "property float z",
+                "end_header",
+                *points,
+                "",
+            ]
+        ),
+        encoding="ascii",
+    )
+    destination = tmp_path / "normals.ply"
+    source_hash = hashlib.sha256(source.read_bytes()).hexdigest()
+    upstream = CloudCompareUpstream(binary)
+    _patch_upstream(upstream)
+
+    result = call_normals(
+        upstream,
+        {
+            "input_path": str(source),
+            "output_path": str(destination),
+            "mode": "LS",
+        },
+    )
+
+    assert result["success"] is True
+    assert destination.is_file()
+    assert upstream._load_cloud(str(destination))[2]["has_normals"] is True
+    assert hashlib.sha256(source.read_bytes()).hexdigest() == source_hash
+    assert staging_entries(tmp_path) == []
 
 
 def test_success_preserves_source_and_atomically_publishes_output(

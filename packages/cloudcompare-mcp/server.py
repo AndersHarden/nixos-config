@@ -14,10 +14,7 @@ from typing import Any
 
 
 _CLOUD_OUTPUT_FORMATS = {
-    ".las": "LAS",
-    ".laz": "LAS",
     ".ply": "PLY",
-    ".pcd": "PCD",
 }
 
 
@@ -474,8 +471,8 @@ def _patch_upstream(upstream: Any) -> None:
                 "output_path": {
                     "type": "string",
                     "description": (
-                        "Absolute output path ending in PLY, LAS, LAZ, or PCD; "
-                        "the selected format must preserve verifiable normals."
+                        "Absolute output path ending in only PLY; this is the "
+                        "supported format that preserves verifiable normals."
                     ),
                 },
                 "mode": {
