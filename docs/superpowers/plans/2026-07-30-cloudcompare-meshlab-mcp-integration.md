@@ -16,8 +16,8 @@
 - Create `packages/meshlab-mcp/server.py`: FastMCP server and the eight public tools.
 - Create `packages/meshlab-mcp/default.nix`: Nix wrapper containing Python, MCP SDK, and PyMeshLab.
 - Create `packages/cloudcompare-mcp/default.nix`: pinned upstream source and flake-locked Python runtime wrapper.
-- Create `packages/cloudcompare-mcp/server.py`: load upstream and correct its unsupported version/readiness handler.
-- Create `packages/cloudcompare-mcp/tests/test_server.py`: focused handler and runtime-dispatch regression tests.
+- Create `packages/cloudcompare-mcp/server.py`: load upstream and correct its unsupported version/readiness and normals handlers.
+- Create `packages/cloudcompare-mcp/tests/test_server.py`: focused handler, schema, argument, and runtime-dispatch regression tests.
 - Create `packages/meshlab-mcp/tests/conftest.py`: reusable closed and open mesh fixtures.
 - Create `packages/meshlab-mcp/tests/test_mesh_ops.py`: unit and geometry integration tests.
 - Create `packages/meshlab-mcp/tests/test_server.py`: MCP tool registration and `stdio` protocol tests.
@@ -884,9 +884,9 @@ PYTHONPATH=packages/cloudcompare-mcp nix shell --impure --expr 'with import <nix
 
 Expected: collection fails because `packages/cloudcompare-mcp/server.py` does not exist.
 
-- [ ] **Step 2: Add the local upstream handler patch**
+- [ ] **Step 2: Add the local upstream handler patches**
 
-Create `packages/cloudcompare-mcp/server.py`. It must load `cloudcompare_mcp.server` from mandatory `CLOUDCOMPARE_MCP_SOURCE`, replace `handle_get_cloudcompare_info`, and call upstream `main()`. The replacement must use upstream `find_cloudcompare`, `_ok`, and `_err`; success contains `binary`, `platform`, `version`, and `ready: true`, while missing binary or version returns only a structured error.
+Create `packages/cloudcompare-mcp/server.py`. It must load `cloudcompare_mcp.server` from mandatory `CLOUDCOMPARE_MCP_SOURCE`, replace `handle_get_cloudcompare_info`, replace the broken `handle_compute_normals` and its exact `TOOLS` entry, and call upstream `main()`. The info replacement must use upstream `find_cloudcompare`, `_ok`, and `_err`; success contains `binary`, `platform`, `version`, and `ready: true`, while missing binary or version returns only a structured error. The normals replacement uses `-OCTREE_NORMALS {auto|radius} -MODEL {LS|QUADRIC|TRI}`, rejects legacy `knn`, and verifies the explicitly saved output. Radius is positive and expressed in source coordinate units; prefer omitted radius and CloudCompare `auto` when the correct scale is unknown.
 
 Run the Step 1 command again. Expected: all focused tests pass, including the runtime-dispatch assertion.
 
