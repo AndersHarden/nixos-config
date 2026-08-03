@@ -33,6 +33,7 @@ class FakeUpstream:
         returncode: int = 0,
         validation_returncode: int = 0,
         load_error: bool = False,
+        has_normals: bool = True,
         normals_tools: int = 1,
         on_primary_run: Callable[[list[str]], None] | None = None,
         external_target: Path | None = None,
@@ -42,6 +43,7 @@ class FakeUpstream:
         self.returncode = returncode
         self.validation_returncode = validation_returncode
         self.load_error = load_error
+        self.has_normals = has_normals
         self.on_primary_run = on_primary_run
         self.external_target = external_target
         self.cc_calls: list[list[str]] = []
@@ -105,7 +107,7 @@ class FakeUpstream:
             raise ValueError("unreadable staged cloud")
         if not Path(path).read_bytes():
             raise ValueError("empty staged cloud")
-        return [], None, {}
+        return [], None, {"has_normals": self.has_normals}
 
     def cc_run(self, args: list[str]) -> tuple[int, str, str]:
         self.cc_calls.append(args)
@@ -213,6 +215,7 @@ def test_compute_normals_schema_is_closed_and_removes_knn() -> None:
     assert "knn" not in properties
     assert "source coordinate units" in properties["radius"]["description"]
     assert "auto" in properties["radius"]["description"]
+    assert "PLY, LAS, LAZ, or PCD" in properties["output_path"]["description"]
     assert tool.inputSchema["required"] == ["input_path", "output_path"]
     assert upstream.TOOLS[1] is original_other_tool
 
@@ -524,34 +527,50 @@ def test_unreadable_native_staging_output_is_not_published(tmp_path: Path) -> No
     assert staging_entries(tmp_path) == []
 
 
-def test_non_native_output_is_reopened_without_normals_recursion(
+def test_readable_output_without_normals_is_not_published(
     tmp_path: Path,
 ) -> None:
     source = source_file(tmp_path)
-    destination = tmp_path / "out.e57"
-    upstream = FakeUpstream("/bin/CloudCompare")
+    destination = tmp_path / "out.ply"
+    upstream = FakeUpstream("/bin/CloudCompare", has_normals=False)
+    _patch_upstream(upstream)
+    result = call_normals(
+        upstream, {"input_path": str(source), "output_path": str(destination)}
+    )
+    assert "does not contain normals" in result["error"]
+    assert not destination.exists()
+    assert staging_entries(tmp_path) == []
+
+
+def test_readable_output_with_normals_is_published(
+    tmp_path: Path,
+) -> None:
+    source = source_file(tmp_path)
+    destination = tmp_path / "out.ply"
+    upstream = FakeUpstream("/bin/CloudCompare", has_normals=True)
     _patch_upstream(upstream)
     result = call_normals(
         upstream, {"input_path": str(source), "output_path": str(destination)}
     )
     assert result["success"] is True
-    assert upstream.cc_calls[1][:3] == ["-AUTO_SAVE", "OFF", "-O"]
-    assert "-OCTREE_NORMALS" not in upstream.cc_calls[1]
+    assert destination.is_file()
+    assert staging_entries(tmp_path) == []
 
 
-def test_non_native_reopen_failure_does_not_publish_and_cleans_staging(
-    tmp_path: Path,
+@pytest.mark.parametrize("suffix", [".xyz", ".asc", ".txt", ".e57", ".obj", ".bin"])
+def test_output_formats_without_native_normals_verification_are_rejected(
+    tmp_path: Path, suffix: str
 ) -> None:
     source = source_file(tmp_path)
-    destination = tmp_path / "out.e57"
-    upstream = FakeUpstream("/bin/CloudCompare", validation_returncode=1)
+    destination = tmp_path / f"out{suffix}"
+    upstream = FakeUpstream("/bin/CloudCompare")
     _patch_upstream(upstream)
     result = call_normals(
         upstream, {"input_path": str(source), "output_path": str(destination)}
     )
-    assert "reopen" in result["error"].lower()
+    assert "unsupported" in result["error"].lower()
+    assert upstream.cc_calls == []
     assert not destination.exists()
-    assert staging_entries(tmp_path) == []
 
 
 def test_success_preserves_source_and_atomically_publishes_output(
@@ -610,6 +629,30 @@ def test_source_mutation_during_cc_run_aborts_without_output(tmp_path: Path) -> 
     assert staging_entries(tmp_path) == []
 
 
+def test_same_size_source_mutation_with_restored_mtime_is_detected(
+    tmp_path: Path,
+) -> None:
+    source = source_file(tmp_path)
+    destination = tmp_path / "out.ply"
+
+    def mutate_source_without_metadata_change(_args: list[str]) -> None:
+        before = source.stat()
+        content = source.read_bytes()
+        source.write_bytes(bytes([content[0] ^ 1]) + content[1:])
+        os.utime(source, ns=(before.st_atime_ns, before.st_mtime_ns))
+
+    upstream = FakeUpstream(
+        "/bin/CloudCompare", on_primary_run=mutate_source_without_metadata_change
+    )
+    _patch_upstream(upstream)
+    result = call_normals(
+        upstream, {"input_path": str(source), "output_path": str(destination)}
+    )
+    assert "source file digest changed" in result["error"]
+    assert not destination.exists()
+    assert staging_entries(tmp_path) == []
+
+
 def test_parent_identity_change_before_publish_aborts_without_output(
     tmp_path: Path,
 ) -> None:
@@ -659,6 +702,37 @@ def test_parent_identity_change_after_link_rolls_back_bound_destination(
     assert not destination.exists()
     assert not (moved_parent / destination.name).exists()
     assert staging_entries(output_parent, moved_parent) == []
+
+
+def test_generic_post_link_error_rolls_back_published_destination(
+    tmp_path: Path, monkeypatch
+) -> None:
+    source = source_file(tmp_path)
+    destination = tmp_path / "out.ply"
+    real_link = os.link
+    real_stat = os.stat
+    linked = False
+
+    def tracked_link(*args, **kwargs) -> None:
+        nonlocal linked
+        real_link(*args, **kwargs)
+        linked = True
+
+    def fail_first_post_link_stat(path, *args, **kwargs):
+        if linked and path == destination.name and kwargs.get("dir_fd") is not None:
+            raise OSError("injected post-link stat failure")
+        return real_stat(path, *args, **kwargs)
+
+    monkeypatch.setattr(wrapper.os, "link", tracked_link)
+    monkeypatch.setattr(wrapper.os, "stat", fail_first_post_link_stat)
+    upstream = FakeUpstream("/bin/CloudCompare")
+    _patch_upstream(upstream)
+    result = call_normals(
+        upstream, {"input_path": str(source), "output_path": str(destination)}
+    )
+    assert "injected post-link stat failure" in result["error"]
+    assert not destination.exists()
+    assert staging_entries(tmp_path) == []
 
 
 def test_staging_temp_symlink_is_rejected_without_external_target_write(

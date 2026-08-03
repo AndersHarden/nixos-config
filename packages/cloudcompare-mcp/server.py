@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import hashlib
 import math
 import os
 import platform
@@ -17,14 +18,7 @@ _CLOUD_OUTPUT_FORMATS = {
     ".laz": "LAS",
     ".ply": "PLY",
     ".pcd": "PCD",
-    ".xyz": "ASC",
-    ".asc": "ASC",
-    ".txt": "ASC",
-    ".e57": "E57",
-    ".obj": "OBJ",
-    ".bin": "BIN",
 }
-_NATIVE_READABLE_FORMATS = {".las", ".laz", ".ply", ".pcd", ".xyz", ".asc", ".txt"}
 
 
 class _NormalsError(ValueError):
@@ -126,6 +120,14 @@ def _identity(path: Path) -> tuple[int, int, int, int]:
         path_stat.st_size,
         path_stat.st_mtime_ns,
     )
+
+
+def _digest(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _cleanup_staging(
@@ -255,6 +257,7 @@ def _patch_upstream(upstream: Any) -> None:
         staging_directory_fd: int | None = None
         staging_name: str | None = None
         staging_identity: tuple[int, int] | None = None
+        published = False
         committed = False
         try:
             output_directory_fd = _open_directory(destination.parent)
@@ -263,6 +266,7 @@ def _patch_upstream(upstream: Any) -> None:
                     f"compute_normals output path already exists: {destination}"
                 )
             source_identity = _identity(source)
+            source_digest = _digest(source)
 
             staging_name = f".{destination.stem}-staging-{secrets.token_hex(8)}"
             os.mkdir(staging_name, mode=0o700, dir_fd=output_directory_fd)
@@ -344,26 +348,15 @@ def _patch_upstream(upstream: Any) -> None:
                 raise _NormalsError("compute_normals staging output must be nonempty")
 
             try:
-                if destination.suffix.lower() in _NATIVE_READABLE_FORMATS:
-                    upstream._load_cloud(str(temporary_path))
-                else:
-                    validation_rc, validation_stdout, validation_stderr = (
-                        upstream.cc_run(
-                            ["-AUTO_SAVE", "OFF", "-O", str(temporary_path)]
-                        )
-                    )
-                    if validation_rc != 0:
-                        raise _NormalsError(
-                            "compute_normals could not reopen staged output; "
-                            f"stdout={validation_stdout.strip() or '(none)'}; "
-                            f"stderr={validation_stderr.strip() or '(none)'}"
-                        )
+                _, _, metadata = upstream._load_cloud(str(temporary_path))
             except Exception as error:
-                if isinstance(error, _NormalsError):
-                    raise
                 raise _NormalsError(
                     f"compute_normals staging validation failed: {error}"
                 ) from error
+            if metadata.get("has_normals") is not True:
+                raise _NormalsError(
+                    "compute_normals staged output does not contain normals"
+                )
 
             if set(os.listdir(staging_directory_fd)) != {temporary_name}:
                 raise _NormalsError("compute_normals validation produced sidecar files")
@@ -376,6 +369,8 @@ def _patch_upstream(upstream: Any) -> None:
                 raise _NormalsError("compute_normals staging output identity changed")
             if _identity(source) != source_identity:
                 raise _NormalsError("compute_normals source file identity changed")
+            if _digest(source) != source_digest:
+                raise _NormalsError("compute_normals source file digest changed")
 
             _verify_directory(destination.parent, output_directory_fd)
             try:
@@ -390,28 +385,15 @@ def _patch_upstream(upstream: Any) -> None:
                 raise _NormalsError(
                     f"compute_normals output path already exists: {destination}"
                 ) from error
+            published = True
             published_stat = os.stat(
                 destination.name,
                 dir_fd=output_directory_fd,
                 follow_symlinks=False,
             )
             if (published_stat.st_dev, published_stat.st_ino) != temporary_identity:
-                try:
-                    os.unlink(destination.name, dir_fd=output_directory_fd)
-                except OSError:
-                    pass
                 raise _NormalsError("compute_normals published output identity changed")
-            try:
-                _verify_directory(destination.parent, output_directory_fd)
-            except Exception as identity_error:
-                try:
-                    os.unlink(destination.name, dir_fd=output_directory_fd)
-                except OSError as rollback_error:
-                    raise _NormalsError(
-                        "compute_normals output directory changed and rollback failed: "
-                        f"{rollback_error}"
-                    ) from identity_error
-                raise
+            _verify_directory(destination.parent, output_directory_fd)
             committed = True
 
             warnings = _cleanup_staging(
@@ -433,6 +415,13 @@ def _patch_upstream(upstream: Any) -> None:
             output_directory_fd = None
             return upstream._run_result(rc, stdout, stderr, context)
         except Exception as error:
+            rollback_error: OSError | None = None
+            if published and not committed and output_directory_fd is not None:
+                try:
+                    os.unlink(destination.name, dir_fd=output_directory_fd)
+                    published = False
+                except OSError as unlink_error:
+                    rollback_error = unlink_error
             cleanup_warnings: list[str] = []
             if output_directory_fd is not None:
                 cleanup_warnings = _cleanup_staging(
@@ -449,6 +438,8 @@ def _patch_upstream(upstream: Any) -> None:
             )
             if cleanup_warnings:
                 message += f"; cleanup warnings={cleanup_warnings!r}"
+            if rollback_error is not None:
+                message += f"; rollback failed: {rollback_error}"
             return upstream._err(message)
         finally:
             if (
@@ -480,7 +471,13 @@ def _patch_upstream(upstream: Any) -> None:
             "additionalProperties": False,
             "properties": {
                 "input_path": {"type": "string"},
-                "output_path": {"type": "string"},
+                "output_path": {
+                    "type": "string",
+                    "description": (
+                        "Absolute output path ending in PLY, LAS, LAZ, or PCD; "
+                        "the selected format must preserve verifiable normals."
+                    ),
+                },
                 "mode": {
                     "type": "string",
                     "enum": ["LS", "QUADRIC", "TRIANGULATION"],
