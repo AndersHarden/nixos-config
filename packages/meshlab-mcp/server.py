@@ -1,12 +1,19 @@
-from typing import Literal
+from typing import Annotated, Literal
 
 from mcp.server.fastmcp import FastMCP
+from pydantic import Field
 
 import mesh_ops
 from mesh_ops import MeshInspection, MeshOperationResult
 
 
 mcp = FastMCP("meshlab-mcp")
+
+MaxHoleSize = Annotated[int, Field(ge=1, le=100000)]
+TargetFaces = Annotated[int, Field(ge=4)]
+TargetEdgeLength = Annotated[float, Field(gt=0, allow_inf_nan=False)]
+RemeshIterations = Annotated[int, Field(ge=1, le=20)]
+SmoothIterations = Annotated[int, Field(ge=1, le=100)]
 
 
 @mcp.tool()
@@ -17,13 +24,13 @@ def inspect_mesh(input_path: str) -> MeshInspection:
 
 @mcp.tool()
 def clean_mesh(input_path: str, output_path: str) -> MeshOperationResult:
-    """Remove duplicate, null, and unreferenced mesh elements."""
+    """Remove duplicate vertices/faces, zero-area faces, and unreferenced vertices."""
     return mesh_ops.clean_mesh(input_path, output_path)
 
 
 @mcp.tool()
 def repair_holes(
-    input_path: str, output_path: str, max_hole_size: int = 30
+    input_path: str, output_path: str, max_hole_size: MaxHoleSize = 30
 ) -> MeshOperationResult:
     """Close mesh holes up to the specified boundary size."""
     return mesh_ops.repair_holes(input_path, output_path, max_hole_size)
@@ -37,7 +44,7 @@ def compute_normals(input_path: str, output_path: str) -> MeshOperationResult:
 
 @mcp.tool()
 def simplify_mesh(
-    input_path: str, output_path: str, target_faces: int
+    input_path: str, output_path: str, target_faces: TargetFaces
 ) -> MeshOperationResult:
     """Simplify a mesh to the requested target face count."""
     return mesh_ops.simplify_mesh(input_path, output_path, target_faces)
@@ -47,8 +54,8 @@ def simplify_mesh(
 def remesh_mesh(
     input_path: str,
     output_path: str,
-    target_edge_length: float,
-    iterations: int = 5,
+    target_edge_length: TargetEdgeLength,
+    iterations: RemeshIterations = 5,
 ) -> MeshOperationResult:
     """Remesh a surface isotropically at the requested edge length."""
     return mesh_ops.remesh_mesh(
@@ -61,7 +68,7 @@ def smooth_mesh(
     input_path: str,
     output_path: str,
     method: Literal["taubin", "laplacian"] = "taubin",
-    iterations: int = 10,
+    iterations: SmoothIterations = 10,
 ) -> MeshOperationResult:
     """Smooth a mesh with Taubin or Laplacian smoothing."""
     return mesh_ops.smooth_mesh(input_path, output_path, method, iterations)

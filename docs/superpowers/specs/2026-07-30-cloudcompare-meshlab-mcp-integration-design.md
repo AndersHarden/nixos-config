@@ -82,7 +82,7 @@ This division removes the current overlap in point-cloud cleanup while preservin
 4. The operation records source metadata, performs one transformation, and writes a temporary output.
 5. The server reopens the temporary output and checks that it is readable and structurally plausible.
 6. The server atomically moves the validated output to the requested destination.
-7. The response contains source metadata, result metadata, parameters, warnings, and the final path.
+7. The response contains source metadata, result metadata, parameters, an always-present warnings array, and the final path.
 8. Downstream feature recognition and FreeCAD modeling consume the verified derivative while retaining the original scan as an immutable reference.
 
 ## Error Handling and Safety

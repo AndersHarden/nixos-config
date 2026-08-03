@@ -555,7 +555,7 @@ def test_cleanup_failure_after_commit_returns_warning(
 
     assert output_path.is_file()
     assert any("post-commit cleanup failed" in warning for warning in result["warnings"])
-    assert "warnings" in mesh_ops.MeshOperationResult.__optional_keys__
+    assert "warnings" in mesh_ops.MeshOperationResult.__required_keys__
 
 
 def test_transform_rejects_material_obj_sidecar_output(tmp_path: Path) -> None:

@@ -4,7 +4,7 @@ import secrets
 import stat
 from numbers import Real
 from pathlib import Path
-from typing import Callable, Iterable, Literal, NotRequired, TypedDict
+from typing import Callable, Iterable, Literal, TypedDict
 
 import pymeshlab
 
@@ -41,7 +41,7 @@ class MeshOperationResult(TypedDict):
     parameters: dict[str, object]
     before: MeshMetadata
     after: MeshMetadata
-    warnings: NotRequired[list[str]]
+    warnings: list[str]
 
 
 class MeshOperationError(ValueError):
@@ -310,6 +310,7 @@ def _transform(
             "parameters": parameters,
             "before": before,
             "after": after,
+            "warnings": [],
         }
         warnings = _cleanup_staging(
             output_directory_fd,
@@ -320,12 +321,11 @@ def _transform(
         staging_directory_fd = None
         staging_name = None
         temporary_name = None
-        if warnings:
-            result["warnings"] = warnings
+        result["warnings"].extend(warnings)
         try:
             os.close(output_directory_fd)
         except OSError as error:
-            result.setdefault("warnings", []).append(
+            result["warnings"].append(
                 f"Failed to close output directory: {error}"
             )
         output_directory_fd = None
