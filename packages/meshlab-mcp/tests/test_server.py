@@ -214,6 +214,63 @@ async def test_server_rejects_out_of_bounds_calls_before_creating_output(
                     assert not output_path.exists()
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("operation", "arguments", "type_error"),
+    [
+        ("repair_holes", {"max_hole_size": True}, "valid integer"),
+        ("repair_holes", {"max_hole_size": "20"}, "valid integer"),
+        ("simplify_mesh", {"target_faces": True}, "valid integer"),
+        ("simplify_mesh", {"target_faces": "6"}, "valid integer"),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": True},
+            "valid integer",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": "1"},
+            "valid integer",
+        ),
+        ("smooth_mesh", {"iterations": True}, "valid integer"),
+        ("smooth_mesh", {"iterations": "1"}, "valid integer"),
+        ("remesh_mesh", {"target_edge_length": True}, "valid number"),
+        ("remesh_mesh", {"target_edge_length": "0.75"}, "valid number"),
+    ],
+)
+async def test_server_rejects_coercible_parameters_before_backend_effects(
+    operation: str,
+    arguments: dict[str, object],
+    type_error: str,
+    cube_path: Path,
+    tmp_path: Path,
+    isolated_server_path: Path,
+) -> None:
+    source_bytes = cube_path.read_bytes()
+    output_path = tmp_path / f"invalid-{operation}.ply"
+    parameters = stdio_parameters(isolated_server_path)
+
+    async with asyncio.timeout(15):
+        async with stdio_client(parameters) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                result = await session.call_tool(
+                    operation,
+                    {
+                        "input_path": str(cube_path),
+                        "output_path": str(output_path),
+                        **arguments,
+                    },
+                )
+
+    assert result.isError is True
+    assert result.structuredContent is None
+    assert "validation error" in result.content[0].text.lower()
+    assert type_error in result.content[0].text.lower()
+    assert cube_path.read_bytes() == source_bytes
+    assert not output_path.exists()
+
+
 @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
 def test_remesh_parameter_annotation_rejects_non_finite_values(value: float) -> None:
     annotation = get_type_hints(server.remesh_mesh, include_extras=True)[

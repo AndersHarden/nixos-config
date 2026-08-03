@@ -363,7 +363,11 @@ def clean_mesh(input_path: str, output_path: str) -> MeshOperationResult:
 def repair_holes(
     input_path: str, output_path: str, max_hole_size: int = 30
 ) -> MeshOperationResult:
-    if not 1 <= max_hole_size <= 100000:
+    if (
+        not isinstance(max_hole_size, int)
+        or isinstance(max_hole_size, bool)
+        or not 1 <= max_hole_size <= 100000
+    ):
         raise MeshOperationError("max_hole_size must be between 1 and 100000")
 
     def repair(mesh_set: pymeshlab.MeshSet) -> None:
@@ -390,7 +394,11 @@ def compute_normals(input_path: str, output_path: str) -> MeshOperationResult:
 def simplify_mesh(
     input_path: str, output_path: str, target_faces: int
 ) -> MeshOperationResult:
-    if target_faces < 4:
+    if (
+        not isinstance(target_faces, int)
+        or isinstance(target_faces, bool)
+        or target_faces < 4
+    ):
         raise MeshOperationError("target_faces must be at least 4")
 
     def simplify(mesh_set: pymeshlab.MeshSet) -> None:
@@ -430,7 +438,11 @@ def remesh_mesh(
         raise MeshOperationError(
             "target_edge_length must be a finite number greater than 0"
         )
-    if not 1 <= iterations <= 20:
+    if (
+        not isinstance(iterations, int)
+        or isinstance(iterations, bool)
+        or not 1 <= iterations <= 20
+    ):
         raise MeshOperationError("iterations must be between 1 and 20")
 
     def remesh(mesh_set: pymeshlab.MeshSet) -> None:
@@ -458,7 +470,11 @@ def smooth_mesh(
 ) -> MeshOperationResult:
     if method not in {"taubin", "laplacian"}:
         raise MeshOperationError("method must be 'taubin' or 'laplacian'")
-    if not 1 <= iterations <= 100:
+    if (
+        not isinstance(iterations, int)
+        or isinstance(iterations, bool)
+        or not 1 <= iterations <= 100
+    ):
         raise MeshOperationError("iterations must be between 1 and 100")
 
     def smooth(mesh_set: pymeshlab.MeshSet) -> None:

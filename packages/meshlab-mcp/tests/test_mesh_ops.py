@@ -139,7 +139,37 @@ def test_export_mesh_converts_obj_to_stl(cube_path: Path, tmp_path: Path) -> Non
             {"max_hole_size": 100001},
             "max_hole_size must be between 1 and 100000",
         ),
+        (
+            "repair_holes",
+            {"max_hole_size": True},
+            "max_hole_size must be between 1 and 100000",
+        ),
+        (
+            "repair_holes",
+            {"max_hole_size": "20"},
+            "max_hole_size must be between 1 and 100000",
+        ),
+        (
+            "repair_holes",
+            {"max_hole_size": 20.0},
+            "max_hole_size must be between 1 and 100000",
+        ),
         ("simplify_mesh", {"target_faces": 3}, "target_faces must be at least 4"),
+        (
+            "simplify_mesh",
+            {"target_faces": True},
+            "target_faces must be at least 4",
+        ),
+        (
+            "simplify_mesh",
+            {"target_faces": "6"},
+            "target_faces must be at least 4",
+        ),
+        (
+            "simplify_mesh",
+            {"target_faces": 6.0},
+            "target_faces must be at least 4",
+        ),
         (
             "simplify_mesh",
             {"target_faces": 12},
@@ -186,6 +216,21 @@ def test_export_mesh_converts_obj_to_stl(cube_path: Path, tmp_path: Path) -> Non
             "iterations must be between 1 and 20",
         ),
         (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": True},
+            "iterations must be between 1 and 20",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": "1"},
+            "iterations must be between 1 and 20",
+        ),
+        (
+            "remesh_mesh",
+            {"target_edge_length": 0.75, "iterations": 1.0},
+            "iterations must be between 1 and 20",
+        ),
+        (
             "smooth_mesh",
             {"method": "unknown"},
             "method must be 'taubin' or 'laplacian'",
@@ -198,6 +243,21 @@ def test_export_mesh_converts_obj_to_stl(cube_path: Path, tmp_path: Path) -> Non
         (
             "smooth_mesh",
             {"iterations": 101},
+            "iterations must be between 1 and 100",
+        ),
+        (
+            "smooth_mesh",
+            {"iterations": True},
+            "iterations must be between 1 and 100",
+        ),
+        (
+            "smooth_mesh",
+            {"iterations": "1"},
+            "iterations must be between 1 and 100",
+        ),
+        (
+            "smooth_mesh",
+            {"iterations": 1.0},
             "iterations must be between 1 and 100",
         ),
     ],

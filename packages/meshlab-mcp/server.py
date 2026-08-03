@@ -9,11 +9,13 @@ from mesh_ops import MeshInspection, MeshOperationResult
 
 mcp = FastMCP("meshlab-mcp")
 
-MaxHoleSize = Annotated[int, Field(ge=1, le=100000)]
-TargetFaces = Annotated[int, Field(ge=4)]
-TargetEdgeLength = Annotated[float, Field(gt=0, allow_inf_nan=False)]
-RemeshIterations = Annotated[int, Field(ge=1, le=20)]
-SmoothIterations = Annotated[int, Field(ge=1, le=100)]
+MaxHoleSize = Annotated[int, Field(strict=True, ge=1, le=100000)]
+TargetFaces = Annotated[int, Field(strict=True, ge=4)]
+TargetEdgeLength = Annotated[
+    float, Field(strict=True, gt=0, allow_inf_nan=False)
+]
+RemeshIterations = Annotated[int, Field(strict=True, ge=1, le=20)]
+SmoothIterations = Annotated[int, Field(strict=True, ge=1, le=100)]
 
 
 @mcp.tool()
