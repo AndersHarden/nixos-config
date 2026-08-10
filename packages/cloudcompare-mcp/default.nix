@@ -21,6 +21,7 @@ writeShellApplication {
   text = ''
     export CLOUDCOMPARE_MCP_SOURCE="${src}/src"
     export CLOUDCOMPARE_VERSION="${cloudcompare.version}"
+    export QT_QPA_PLATFORM="offscreen"
     exec ${pythonEnv}/bin/python ${./server.py} "$@"
   '';
 }

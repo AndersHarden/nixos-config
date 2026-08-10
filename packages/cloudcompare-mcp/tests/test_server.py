@@ -197,6 +197,9 @@ def staging_entries(*directories: Path) -> list[Path]:
 
 
 def test_patched_dispatch_reports_nix_version_and_binary(monkeypatch) -> None:
+    wrapper = Path(__file__).resolve().parents[1] / "default.nix"
+    assert 'export QT_QPA_PLATFORM="offscreen"' in wrapper.read_text(encoding="utf-8")
+
     monkeypatch.setenv("CLOUDCOMPARE_VERSION", "2.13.2")
     upstream = FakeUpstream("/run/current-system/sw/bin/CloudCompare")
     _patch_upstream(upstream)
