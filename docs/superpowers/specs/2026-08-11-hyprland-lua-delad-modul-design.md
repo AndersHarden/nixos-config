@@ -30,7 +30,7 @@ Modulen ska:
 - `hosts/laptop-nvidia/hyprland.nix`: lägg till import av delad modul
 - `hosts/laptop-intel/hyprland.nix`: lägg till import av delad modul
 
-## Omtöckning (avgränsning)
+## Avgränsning
 
 - `environment.etc."hypr/hyprland-<host>.conf"` behålls oförändrad (legacy)
 - Inga andra host-specifika ändringar
