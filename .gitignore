@@ -1,5 +1,4 @@
 result
-flake.lock
 .worktrees/
 __pycache__/
 *.py[cod]
