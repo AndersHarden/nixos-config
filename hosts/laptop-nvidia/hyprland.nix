@@ -1,5 +1,5 @@
 # Plats: hosts/laptop-nvidia/hyprland.nix
-{ pkgs, config, ... }:
+{ config, ... }:
 
 let
   hyprlandHostConfig = ''
@@ -40,7 +40,7 @@ let
 in
 {
   imports = [
-    ../../modules/desktop/hyprland-base.nix
+    (import ../../modules/desktop/hyprland-home.nix { inherit hyprlandHostConfig; })
   ];
 
   environment.etc."hypr/hyprland-${config.networking.hostName}.conf".text = hyprlandHostConfig;
