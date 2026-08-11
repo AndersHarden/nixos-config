@@ -39,6 +39,7 @@
   nixpkgs.overlays = [
     (final: prev: {
       unstable = pkgsUnstable;
+      waybar = pkgsUnstable.waybar;
     })
   ];
 

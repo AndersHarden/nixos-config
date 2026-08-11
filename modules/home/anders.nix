@@ -1,8 +1,5 @@
 #./modules/home/anders.nix
-{ config, pkgs, specialArgs, ... }: # <--- Ändrad signatur: tar emot specialArgs
-let
-  hostName = specialArgs.hostName; # Hämta hostName från specialArgs
-in
+{ config, pkgs, ... }:
 {
   # Enable home manager programs
   programs.home-manager.enable = true;
@@ -16,7 +13,6 @@ in
     ./pywal.nix
     ./config-files.nix
     ./scripts.nix
-    ./hyprland.nix
     ./hyprpaper.nix
   ];
 
@@ -31,6 +27,16 @@ in
   home.sessionVariables = {
     PATH = "${config.home.homeDirectory}/.local/bin:${pkgs.stdenv.cc.cc}/bin:${pkgs.coreutils}/bin:${pkgs.git}/bin:${pkgs.gcc}/bin:${pkgs.bash}/bin";
     LD_LIBRARY_PATH = "${pkgs.gcc.cc.lib}/lib";
+    # NVIDIA Wayland kräver GBM-backend
+    GBM_BACKEND = "nvidia-drm";
+    __GLX_VENDOR_LIBRARY_NAME = "nvidia";
+    LIBVA_DRIVER_NAME = "nvidia";
+    # GTK: använd Wayland- backend, fallback till X11
+    GDK_BACKEND = "wayland,x11";
+    # NVIDIA Wayland optimizations
+    NVD_BACKEND = "direct";
+    # Tvinga GTK att använda Cairo-mjukvarurendering (kringgå NVIDIA subsurface-bugg)
+    GDK_DEBUG = "gl-disable";
   };
 
   # Exempel fontconfig (enkel, utan att skriva till xdg.configFile)
