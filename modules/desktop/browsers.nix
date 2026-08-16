@@ -5,7 +5,6 @@
     google-chrome
     chromium
     chromedriver
-    ladybird
     brave
   ];
 
