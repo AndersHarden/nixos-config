@@ -31,7 +31,7 @@
       fi
 
       # otherwise authenticate with tailscale
-      ${tailscale}/bin/tailscale up -authkey tskey-examplekeyhere
+      ${tailscale}/bin/tailscale up --reset -authkey tskey-examplekeyhere
     '';
   };
 
