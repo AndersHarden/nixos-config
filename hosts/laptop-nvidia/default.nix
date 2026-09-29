@@ -49,5 +49,13 @@
 
   services.flatpak.enable = true;
 
+  home-manager.users.anders = {
+    imports = [ inputs.nix-flatpak.homeManagerModules.nix-flatpak ];
+    services.flatpak = {
+      enable = true;
+      packages = [ "com.orcaslicer.OrcaSlicer" ];
+    };
+  };
+
   system.stateVersion = "26.05";
 }
